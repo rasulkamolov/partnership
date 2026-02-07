@@ -1,69 +1,98 @@
 <?php
 // app/pages/attendance.php
-$att_q = "SELECT s.*, sc.name as s_name, a.status as today_status FROM students s JOIN schools sc ON s.school_id = sc.id LEFT JOIN attendance a ON s.id = a.student_id AND a.date = date('now')";
-if (!$is_admin) $att_q .= " WHERE s.school_id = $uid";
+
+// Determine today's schedule type
+$dow = date('N'); // 1=Mon, 7=Sun
+$day_type = ($dow % 2 != 0) ? 'odd' : 'even'; // Mon(1), Wed(3), Fri(5) -> odd; Tue(2), Thu(4), Sat(6) -> even
+if ($dow == 7) $day_type = 'sunday'; // Handle Sunday separately if needed, or just treat as odd/even
+
+// Build Query
+$att_q = "SELECT s.*, sc.name as s_name, a.status as today_status
+          FROM students s
+          JOIN schools sc ON s.school_id = sc.id
+          LEFT JOIN attendance a ON s.id = a.student_id AND a.date = date('now')
+          WHERE (s.schedule_type = '$day_type' OR s.schedule_type = 'everyday')";
+
+if (!$is_admin) $att_q .= " AND s.school_id = $uid";
 
 $students = $db->query($att_q)->fetchAll();
 ?>
-<div class="bg-white rounded-[3.5rem] p-12 border border-slate-200/50 shadow-sm relative overflow-hidden">
-    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -z-10 opacity-50"></div>
+<div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm relative overflow-hidden min-h-[500px]">
+    <!-- Decorative Background -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-50/50 rounded-full blur-3xl -z-10 opacity-60 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-emerald-50/50 rounded-full blur-3xl -z-10 opacity-60 pointer-events-none"></div>
 
-    <div class="flex justify-between items-center mb-10">
+    <div class="flex justify-between items-end mb-8">
         <div>
-            <h3 class="text-3xl font-black text-slate-900 tracking-tight">Daily Roster</h3>
-            <p class="text-slate-400 font-medium mt-1">Mark attendance for today's session.</p>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Daily Roster</h3>
+            <p class="text-slate-500 text-sm font-medium">
+                Showing students for <span class="text-indigo-600 font-bold uppercase"><?= ucfirst($day_type) ?> Days</span> & <span class="text-indigo-600 font-bold uppercase">Every Day</span>
+            </p>
         </div>
-        <div class="flex items-center gap-3 bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100">
-            <i data-lucide="calendar" class="text-indigo-600 w-5 h-5"></i>
-            <span class="text-indigo-900 font-bold"><?= date('M d, Y') ?></span>
+        <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200/60 shadow-sm">
+            <i data-lucide="calendar" class="text-indigo-500 w-4 h-4"></i>
+            <span class="text-slate-700 font-bold text-sm"><?= date('M d, Y') ?></span>
         </div>
     </div>
 
     <form method="POST">
-        <div class="overflow-hidden rounded-3xl border border-slate-100 shadow-sm">
+        <?php if(empty($students)): ?>
+            <div class="flex flex-col items-center justify-center py-20 text-center">
+                <div class="bg-slate-50 p-6 rounded-full mb-4">
+                    <i data-lucide="coffee" class="text-slate-300 w-10 h-10"></i>
+                </div>
+                <h4 class="text-slate-900 font-bold text-lg mb-1">No Classes Scheduled</h4>
+                <p class="text-slate-500 text-sm max-w-xs">There are no students scheduled for today (<?= date('l') ?>).</p>
+            </div>
+        <?php else: ?>
+        <div class="overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm">
             <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
-                        <th class="p-6 pl-10">Student Identity</th>
-                        <th class="p-6 text-center">Status Assignment</th>
+                <thead class="bg-slate-50/80 backdrop-blur-sm text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200/60">
+                    <tr>
+                        <th class="p-4 pl-6 w-1/3">Student</th>
+                        <th class="p-4 w-1/6">Group</th>
+                        <th class="p-4 text-center">Attendance Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50 bg-white">
-                    <?php if(empty($students)): ?>
-                        <tr><td colspan="2" class="p-10 text-center text-slate-400 font-bold">No students found.</td></tr>
-                    <?php endif; ?>
-
+                <tbody class="divide-y divide-slate-100 bg-white">
                     <?php foreach($students as $row):
                         $current_status = $row['today_status'] ?? 'Present';
                     ?>
-                    <tr class="group hover:bg-slate-50/80 transition duration-200">
-                        <td class="p-6 pl-10">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm border border-indigo-100/50">
+                    <tr class="group hover:bg-indigo-50/30 transition duration-200">
+                        <td class="p-4 pl-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-100 to-white border border-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs shadow-sm">
                                     <?= htmlspecialchars(substr($row['name'], 0, 1)) ?>
                                 </div>
                                 <div>
-                                    <p class="font-black text-slate-800 text-base mb-0.5"><?= htmlspecialchars($row['name']) ?></p>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-100 px-2 py-0.5 rounded-md"><?= htmlspecialchars($row['s_name']) ?></span>
-                                        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wide"><?= htmlspecialchars($row['group_name']) ?></span>
-                                    </div>
+                                    <p class="font-bold text-slate-800 text-sm mb-0.5 group-hover:text-indigo-600 transition"><?= htmlspecialchars($row['name']) ?></p>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide bg-slate-100 px-2 py-0.5 rounded text-xs border border-slate-200/50"><?= htmlspecialchars($row['s_name']) ?></span>
                                 </div>
                             </div>
                         </td>
-                        <td class="p-6">
-                            <div class="flex justify-center gap-3">
+                        <td class="p-4">
+                            <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded-md shadow-sm">
+                                <?= htmlspecialchars($row['group_name']) ?>
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex justify-center gap-2">
                                 <?php if($is_admin): ?>
                                     <?php foreach(['Present', 'Absent', 'Late'] as $status): ?>
-                                    <label class="cursor-pointer relative group/label">
+                                    <label class="cursor-pointer relative">
                                         <input type="radio" name="att[<?=$row['id']?>]" value="<?=$status?>" class="hidden peer" <?= $status == $current_status ? 'checked' : '' ?>>
-                                        <span class="px-6 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-500 font-bold text-xs transition-all duration-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 peer-checked:shadow-lg peer-checked:shadow-indigo-500/30 hover:bg-slate-50 block text-center min-w-[90px]">
+                                        <span class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-[11px] transition-all duration-200 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 peer-checked:shadow-md hover:bg-slate-50 block text-center min-w-[70px]">
                                             <?=$status?>
                                         </span>
                                     </label>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <?= get_student_status_badge($row['today_status'] ?? 'Pending') ?>
+                                    <div class="px-4 py-2 rounded-lg border font-bold text-xs text-center min-w-[80px]
+                                        <?= $current_status == 'Present' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                           ($current_status == 'Absent' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                           'bg-amber-50 text-amber-600 border-amber-100') ?>">
+                                        <?= $current_status ?>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -73,13 +102,14 @@ $students = $db->query($att_q)->fetchAll();
             </table>
         </div>
 
-        <?php if($is_admin && !empty($students)): ?>
-        <div class="mt-10 text-center">
-            <button name="save_att" class="bg-slate-900 text-white px-12 py-4 rounded-2xl font-black text-sm hover:scale-105 hover:bg-indigo-600 transition-all duration-300 shadow-xl shadow-slate-900/10 flex items-center gap-3 mx-auto">
+        <?php if($is_admin): ?>
+        <div class="mt-8 text-center sticky bottom-0 z-20">
+            <button name="save_att" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-sm hover:scale-105 hover:bg-indigo-600 transition-all duration-300 shadow-xl shadow-slate-900/20 flex items-center gap-2 mx-auto">
                 <i data-lucide="save" class="w-4 h-4"></i>
-                <span>Publish Attendance Data</span>
+                <span>Publish Attendance</span>
             </button>
         </div>
+        <?php endif; ?>
         <?php endif; ?>
     </form>
 </div>

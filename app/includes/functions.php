@@ -7,8 +7,15 @@ function get_teaching_days_count($month, $year, $schedule_type) {
     for ($d = 1; $d <= $days_in_month; $d++) {
         $timestamp = mktime(0, 0, 0, $month, $d, $year);
         $weekday = date('N', $timestamp); // 1 (Mon) - 7 (Sun)
+
+        // Count Odd Days (Mon, Wed, Fri)
         if ($schedule_type == 'odd' && in_array($weekday, [1, 3, 5])) $count++;
+
+        // Count Even Days (Tue, Thu, Sat)
         if ($schedule_type == 'even' && in_array($weekday, [2, 4, 6])) $count++;
+
+        // Count Every Day (Mon - Sat)
+        if ($schedule_type == 'everyday' && $weekday <= 6) $count++;
     }
     return $count;
 }
@@ -19,11 +26,11 @@ function render_currency($amount) {
 
 function get_student_status_badge($status) {
     $classes = match($status) {
-        'Present' => 'bg-emerald-100 text-emerald-600',
-        'Absent' => 'bg-rose-100 text-rose-600',
-        'Late' => 'bg-amber-100 text-amber-600',
-        default => 'bg-slate-100 text-slate-500'
+        'Present' => 'bg-emerald-50 text-emerald-600 border border-emerald-100',
+        'Absent' => 'bg-rose-50 text-rose-600 border border-rose-100',
+        'Late' => 'bg-amber-50 text-amber-600 border border-amber-100',
+        default => 'bg-slate-50 text-slate-500 border border-slate-100'
     };
-    return "<span class=\"px-4 py-1 rounded-full text-[10px] font-black uppercase $classes\">$status</span>";
+    return "<span class=\"px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border $classes\">$status</span>";
 }
 ?>
