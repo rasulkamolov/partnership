@@ -13,9 +13,27 @@ $db->exec("CREATE TABLE IF NOT EXISTS schools (id INTEGER PRIMARY KEY AUTOINCREM
 $db->exec("CREATE TABLE IF NOT EXISTS students (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, group_name TEXT, status TEXT DEFAULT 'Active', FOREIGN KEY(school_id) REFERENCES schools(id))");
 $db->exec("CREATE TABLE IF NOT EXISTS attendance (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER, status TEXT, date DATE DEFAULT CURRENT_DATE, marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
+// Upgrade Schema
+$cols = $db->query("PRAGMA table_info(students)")->fetchAll(PDO::FETCH_COLUMN, 1);
+if (!in_array('monthly_fee', $cols)) $db->exec("ALTER TABLE students ADD COLUMN monthly_fee REAL DEFAULT 0");
+if (!in_array('schedule_type', $cols)) $db->exec("ALTER TABLE students ADD COLUMN schedule_type TEXT DEFAULT 'odd'");
+
 // Create Master Admin (admin / admin123)
 if (!$db->query("SELECT 1 FROM schools WHERE username = 'admin'")->fetch()) {
     $db->prepare("INSERT INTO schools (name, username, password) VALUES (?, ?, ?)")->execute(['Oxford LC Master', 'admin', password_hash('admin123', PASSWORD_DEFAULT)]);
+}
+
+// Helper: Calculate Teaching Days
+function get_teaching_days_count($month, $year, $schedule_type) {
+    $count = 0;
+    $days_in_month = date('t', mktime(0, 0, 0, $month, 1, $year));
+    for ($d = 1; $d <= $days_in_month; $d++) {
+        $timestamp = mktime(0, 0, 0, $month, $d, $year);
+        $weekday = date('N', $timestamp); // 1 (Mon) - 7 (Sun)
+        if ($schedule_type == 'odd' && in_array($weekday, [1, 3, 5])) $count++;
+        if ($schedule_type == 'even' && in_array($weekday, [2, 4, 6])) $count++;
+    }
+    return $count;
 }
 
 // Auth Controller
@@ -40,8 +58,15 @@ if ($is_admin) {
            ->execute([$_POST['sch_name'], $_POST['sch_user'], password_hash($_POST['sch_pass'], PASSWORD_DEFAULT), $_POST['sch_contact']]);
     }
     if (isset($_POST['add_student'])) {
-        $db->prepare("INSERT INTO students (name, school_id, group_name) VALUES (?, ?, ?)")
-           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group']]);
+        $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type) VALUES (?, ?, ?, ?, ?)")
+           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule']]);
+    }
+    if (isset($_POST['save_pricing'])) {
+        foreach ($_POST['fee'] as $sid => $fee) {
+            $db->prepare("UPDATE students SET monthly_fee = ?, schedule_type = ? WHERE id = ?")
+               ->execute([$fee, $_POST['sch'][$sid], $sid]);
+        }
+        $success_msg = "Pricing structures updated!";
     }
     if (isset($_POST['save_att'])) {
         foreach ($_POST['att'] as $sid => $status) {
@@ -53,9 +78,9 @@ if ($is_admin) {
 }
 
 // --- 3. DATA AGGREGATION FOR REPORTS ---
-$total_students = $db->query("SELECT COUNT(*) FROM students")->fetchColumn();
+$total_students = $db->query($is_admin ? "SELECT COUNT(*) FROM students" : "SELECT COUNT(*) FROM students WHERE school_id = $uid")->fetchColumn();
 $total_schools = $db->query("SELECT COUNT(*) FROM schools WHERE id > 1")->fetchColumn();
-$absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent' AND date=date('now')")->fetchColumn();
+$absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE status='Absent' AND date=date('now')" : "SELECT COUNT(a.id) FROM attendance a JOIN students s ON a.student_id = s.id WHERE a.status='Absent' AND a.date=date('now') AND s.school_id = $uid")->fetchColumn();
 ?>
 
 <!DOCTYPE html>
@@ -100,8 +125,11 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                 <div class="px-4 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mb-4">Navigation</div>
                 <a href="index.php" class="flex items-center gap-4 p-4 rounded-2xl transition <?= !isset($_GET['p']) ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="?p=attendance" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='attendance' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="calendar-check"></i> Attendance</a>
-                <a href="?p=students" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='students' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="users"></i> Students</a>
-                <a href="?p=reports" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='reports' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="bar-chart-horizontal"></i> Analytics</a>
+                <?php if($is_admin): ?>
+                    <a href="?p=students" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='students' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="users"></i> Students</a>
+                    <a href="?p=pricing" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='pricing' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="dollar-sign"></i> Pricing</a>
+                    <a href="?p=reports" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='reports' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="bar-chart-horizontal"></i> Analytics</a>
+                <?php endif; ?>
             </nav>
 
             <div class="mt-auto pt-10 border-t border-white/5">
@@ -158,6 +186,7 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                             <input type="text" name="sch_name" placeholder="Official Institution Name" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
                             <input type="text" name="sch_user" placeholder="Assigned Username" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
                             <input type="password" name="sch_pass" placeholder="Password Access" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
+                            <input type="text" name="sch_contact" placeholder="Contact Information" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
                             <button name="add_school" class="w-full bg-indigo-600 text-white font-bold p-5 rounded-3xl hover:bg-slate-900 transition shadow-xl shadow-indigo-100">Establish Partnership</button>
                         </form>
                     </div>
@@ -171,6 +200,13 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                                 <?php endforeach; ?>
                             </select>
                             <input type="text" name="st_group" placeholder="Educational Group (e.g. IELTS Foundation)" class="w-full p-5 bg-white rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none shadow-sm">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="number" name="st_fee" placeholder="Monthly Fee" class="w-full p-5 bg-white rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none shadow-sm">
+                                <select name="st_schedule" class="w-full p-5 bg-white rounded-3xl outline-none border-none shadow-sm">
+                                    <option value="odd">Odd Days (M/W/F)</option>
+                                    <option value="even">Even Days (T/T/S)</option>
+                                </select>
+                            </div>
                             <button name="add_student" class="w-full bg-slate-900 text-white font-bold p-5 rounded-3xl hover:bg-indigo-600 transition">Confirm Enrollment</button>
                         </form>
                     </div>
@@ -192,7 +228,13 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                <?php foreach($db->query("SELECT s.*, sc.name as s_name FROM students s JOIN schools sc ON s.school_id = sc.id") as $row): ?>
+                                <?php
+                                $att_q = "SELECT s.*, sc.name as s_name, a.status as today_status FROM students s JOIN schools sc ON s.school_id = sc.id LEFT JOIN attendance a ON s.id = a.student_id AND a.date = date('now')";
+                                if (!$is_admin) $att_q .= " WHERE s.school_id = $uid";
+
+                                foreach($db->query($att_q) as $row):
+                                    $current_status = $row['today_status'] ?? 'Present'; // Default to Present for Admin inputs
+                                ?>
                                 <tr class="group hover:bg-slate-50 transition">
                                     <td class="p-6">
                                         <p class="font-black text-slate-800 text-lg"><?= $row['name'] ?></p>
@@ -200,25 +242,65 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                                     </td>
                                     <td class="p-6">
                                         <div class="flex justify-center gap-4">
-                                            <?php foreach(['Present', 'Absent', 'Late'] as $status): ?>
-                                            <label class="cursor-pointer">
-                                                <input type="radio" name="att[<?=$row['id']?>]" value="<?=$status?>" class="hidden peer" <?= $status == 'Present' ? 'checked' : '' ?>>
-                                                <span class="px-8 py-3 rounded-2xl border border-slate-100 bg-slate-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:shadow-lg transition block font-bold text-sm"><?=$status?></span>
-                                            </label>
-                                            <?php endforeach; ?>
+                                            <?php if($is_admin): ?>
+                                                <?php foreach(['Present', 'Absent', 'Late'] as $status): ?>
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="att[<?=$row['id']?>]" value="<?=$status?>" class="hidden peer" <?= $status == $current_status ? 'checked' : '' ?>>
+                                                    <span class="px-8 py-3 rounded-2xl border border-slate-100 bg-slate-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:shadow-lg transition block font-bold text-sm"><?=$status?></span>
+                                                </label>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <span class="px-8 py-3 rounded-2xl font-bold text-sm <?= ($row['today_status'] ?? 'Pending') == 'Present' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500' ?>"><?= $row['today_status'] ?? 'Not Marked' ?></span>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                        <?php if($is_admin): ?>
                         <div class="mt-12 text-center">
                             <button name="save_att" class="bg-slate-900 text-white px-16 py-6 rounded-[2.5rem] font-black text-xl hover:scale-105 transition shadow-2xl">Publish Attendance Data</button>
+                        </div>
+                        <?php endif; ?>
+                    </form>
+                </div>
+
+            <?php elseif($_GET['p'] == 'pricing' && $is_admin): ?>
+                <div class="bg-white rounded-[3.5rem] p-12 shadow-sm border border-slate-200/50">
+                    <div class="flex justify-between items-center mb-12">
+                        <h3 class="text-3xl font-black">Tuition & Scheduling</h3>
+                    </div>
+                    <form method="POST">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest">
+                                <tr><th class="p-8">Student</th><th class="p-8">Group</th><th class="p-8">Monthly Fee</th><th class="p-8">Schedule</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <?php foreach($db->query("SELECT * FROM students") as $s): ?>
+                                <tr>
+                                    <td class="p-8 font-bold text-slate-800 text-xl"><?= $s['name'] ?></td>
+                                    <td class="p-8"><span class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold text-slate-600"><?= $s['group_name'] ?></span></td>
+                                    <td class="p-8">
+                                        <input type="number" name="fee[<?=$s['id']?>]" value="<?= $s['monthly_fee'] ?>" class="p-3 bg-slate-50 rounded-xl border border-slate-200 w-40 font-bold">
+                                    </td>
+                                    <td class="p-8">
+                                        <select name="sch[<?=$s['id']?>]" class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-bold">
+                                            <option value="odd" <?= $s['schedule_type'] == 'odd' ? 'selected' : '' ?>>Odd (M/W/F)</option>
+                                            <option value="even" <?= $s['schedule_type'] == 'even' ? 'selected' : '' ?>>Even (T/T/S)</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <div class="mt-12 text-center">
+                            <button name="save_pricing" class="bg-slate-900 text-white px-16 py-6 rounded-[2.5rem] font-black text-xl hover:scale-105 transition shadow-2xl">Update Pricing</button>
                         </div>
                     </form>
                 </div>
 
-            <?php elseif($_GET['p'] == 'students'): ?>
+            <?php elseif($_GET['p'] == 'students' && $is_admin): ?>
                 <div class="bg-white rounded-[3.5rem] p-12 shadow-sm border border-slate-200/50">
                     <div class="flex justify-between items-center mb-12">
                         <h3 class="text-3xl font-black">Managed Students</h3>
@@ -244,6 +326,81 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                 </div>
 
             <?php elseif($_GET['p'] == 'reports'): ?>
+                <?php if($is_admin):
+                    $curr_month = date('n');
+                    $curr_year = date('Y');
+                    $month_name = date('F');
+
+                    $financials = [];
+                    $total_revenue = 0;
+
+                    $students = $db->query("SELECT s.*, sc.name as school_name FROM students s JOIN schools sc ON s.school_id = sc.id")->fetchAll();
+                    foreach($students as $st) {
+                        $teaching_days = get_teaching_days_count($curr_month, $curr_year, $st['schedule_type']);
+                        $stmt = $db->prepare("SELECT COUNT(*) FROM attendance WHERE student_id = ? AND status = 'Present' AND strftime('%m', date) = ? AND strftime('%Y', date) = ?");
+                        $stmt->execute([$st['id'], sprintf('%02d', $curr_month), $curr_year]);
+                        $attended = $stmt->fetchColumn();
+
+                        $earned = 0;
+                        if ($teaching_days > 0) {
+                            $earned = ($st['monthly_fee'] / $teaching_days) * $attended;
+                        }
+
+                        $total_revenue += $earned;
+                        $financials[] = [
+                            'name' => $st['name'],
+                            'school' => $st['school_name'],
+                            'fee' => $st['monthly_fee'],
+                            'schedule' => $st['schedule_type'],
+                            'days' => $teaching_days,
+                            'attended' => $attended,
+                            'earned' => $earned
+                        ];
+                    }
+                    $total_gov = $total_revenue * 0.8;
+                    $total_parent = $total_revenue * 0.2;
+                ?>
+                <div class="grid grid-cols-3 gap-8 mb-12">
+                    <div class="bg-indigo-600 p-10 rounded-[3rem] text-white shadow-xl shadow-indigo-200">
+                        <p class="font-bold text-indigo-200 uppercase text-xs mb-2"><?= $month_name ?> Revenue</p>
+                        <h3 class="text-4xl font-black"><?= number_format($total_revenue, 0) ?> UZS</h3>
+                    </div>
+                    <div class="bg-white p-10 rounded-[3rem] border border-slate-200/50 shadow-sm">
+                        <p class="font-bold text-slate-400 uppercase text-xs mb-2">Gov. Subsidy (80%)</p>
+                        <h3 class="text-4xl font-black text-emerald-600"><?= number_format($total_gov, 0) ?> UZS</h3>
+                    </div>
+                    <div class="bg-white p-10 rounded-[3rem] border border-slate-200/50 shadow-sm">
+                        <p class="font-bold text-slate-400 uppercase text-xs mb-2">Parent Contr. (20%)</p>
+                        <h3 class="text-4xl font-black text-slate-800"><?= number_format($total_parent, 0) ?> UZS</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[3.5rem] p-12 mb-12 border border-slate-200/50 shadow-sm overflow-hidden">
+                    <h3 class="text-2xl font-black mb-8">Financial Breakdown</h3>
+                    <div class="max-h-96 overflow-y-auto custom-scroll">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest sticky top-0">
+                                <tr><th class="p-6">Student</th><th class="p-6">Attended</th><th class="p-6">Earned</th><th class="p-6">Gov (80%)</th><th class="p-6">Parent (20%)</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <?php foreach($financials as $f): ?>
+                                <tr>
+                                    <td class="p-6">
+                                        <div class="font-bold text-slate-900"><?= $f['name'] ?></div>
+                                        <div class="text-[10px] uppercase font-bold text-slate-400"><?= $f['school'] ?> • <?= ucfirst($f['schedule']) ?></div>
+                                    </td>
+                                    <td class="p-6 font-bold text-indigo-600"><?= $f['attended'] ?> / <?= $f['days'] ?></td>
+                                    <td class="p-6 font-bold"><?= number_format($f['earned'], 0) ?></td>
+                                    <td class="p-6 text-emerald-600"><?= number_format($f['earned'] * 0.8, 0) ?></td>
+                                    <td class="p-6 text-slate-500"><?= number_format($f['earned'] * 0.2, 0) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <div class="grid grid-cols-2 gap-10">
                     <div class="bg-white p-12 rounded-[3.5rem] border border-slate-200/50 shadow-sm">
                         <h3 class="text-2xl font-black mb-10 flex items-center gap-3"><i data-lucide="bar-chart-2" class="text-indigo-500"></i> Performance Trends</h3>
