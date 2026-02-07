@@ -7,7 +7,12 @@ $curr_year = isset($_GET['y']) ? (int)$_GET['y'] : (int)date('Y');
 $selected_school = isset($_GET['school_id']) ? (int)$_GET['school_id'] : 0;
 
 $days_in_month = date('t', mktime(0, 0, 0, $curr_month, 1, $curr_year));
-$month_name = date('F', mktime(0, 0, 0, $curr_month, 1, $curr_year));
+// Uzbek Month Names
+$uz_months = [
+    1 => 'Yanvar', 2 => 'Fevral', 3 => 'Mart', 4 => 'Aprel', 5 => 'May', 6 => 'Iyun',
+    7 => 'Iyul', 8 => 'Avgust', 9 => 'Sentabr', 10 => 'Oktabr', 11 => 'Noyabr', 12 => 'Dekabr'
+];
+$month_name = $uz_months[$curr_month];
 
 // 2. Fetch students
 $sql = "SELECT s.*, sc.name as sname FROM students s JOIN schools sc ON s.school_id = sc.id WHERE 1=1";
@@ -68,8 +73,8 @@ function get_day_status($sid, $day, $records) {
     <!-- Header Controls -->
     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
         <div>
-            <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Monthly Overview</h3>
-            <p class="text-slate-500 text-sm font-medium">Detailed attendance breakdown for <span class="text-indigo-600 font-bold"><?= $month_name ?> <?= $curr_year ?></span></p>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Oylik Hisobot</h3>
+            <p class="text-slate-500 text-sm font-medium">Davomat bo'yicha batafsil ma'lumot: <span class="text-indigo-600 font-bold"><?= $month_name ?> <?= $curr_year ?></span></p>
         </div>
 
         <form method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/60 shadow-sm flex-wrap">
@@ -77,7 +82,7 @@ function get_day_status($sid, $day, $records) {
 
             <?php if($is_admin): ?>
             <select name="school_id" class="px-3 py-2 bg-white rounded-lg font-bold text-xs border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer max-w-[150px]">
-                <option value="0">All Schools</option>
+                <option value="0">Barcha Maktablar</option>
                 <?php foreach($db->query("SELECT id, name FROM schools WHERE id > 1") as $sch): ?>
                     <option value="<?= $sch['id'] ?>" <?= $sch['id'] == $selected_school ? 'selected' : '' ?>><?= htmlspecialchars($sch['name']) ?></option>
                 <?php endforeach; ?>
@@ -85,9 +90,9 @@ function get_day_status($sid, $day, $records) {
             <?php endif; ?>
 
             <select name="m" class="px-3 py-2 bg-white rounded-lg font-bold text-xs border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer">
-                <?php for($i=1; $i<=12; $i++): ?>
-                    <option value="<?=$i?>" <?= $i==$curr_month ? 'selected' : '' ?>><?= date('F', mktime(0,0,0,$i,1)) ?></option>
-                <?php endfor; ?>
+                <?php foreach($uz_months as $num => $name): ?>
+                    <option value="<?=$num?>" <?= $num==$curr_month ? 'selected' : '' ?>><?= $name ?></option>
+                <?php endforeach; ?>
             </select>
 
             <select name="y" class="px-3 py-2 bg-white rounded-lg font-bold text-xs border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer">
@@ -107,7 +112,7 @@ function get_day_status($sid, $day, $records) {
         <table class="w-full text-left border-collapse min-w-[800px]">
             <thead class="bg-slate-50/80 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200 sticky top-0 z-20 backdrop-blur-sm shadow-sm">
                 <tr>
-                    <th class="p-3 pl-4 sticky left-0 z-30 bg-slate-50 border-r border-slate-200 min-w-[200px]">Student</th>
+                    <th class="p-3 pl-4 sticky left-0 z-30 bg-slate-50 border-r border-slate-200 min-w-[200px]">O'quvchi</th>
                     <?php for($d=1; $d<=$days_in_month; $d++):
                         $ts = mktime(0,0,0,$curr_month,$d,$curr_year);
                         $day_num = date('N', $ts); // 1=Mon, 7=Sun
@@ -125,7 +130,7 @@ function get_day_status($sid, $day, $records) {
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white text-xs">
                 <?php if(empty($students)): ?>
-                    <tr><td colspan="<?= $days_in_month + 1 ?>" class="p-10 text-center text-slate-400 font-bold">No students found for the selected criteria.</td></tr>
+                    <tr><td colspan="<?= $days_in_month + 1 ?>" class="p-10 text-center text-slate-400 font-bold">Tanlangan mezonlar bo'yicha o'quvchilar topilmadi.</td></tr>
                 <?php endif; ?>
 
                 <?php foreach($students as $s): ?>
@@ -163,9 +168,9 @@ function get_day_status($sid, $day, $records) {
     </div>
 
     <div class="mt-6 flex items-center gap-6 text-[10px] font-bold text-slate-500 uppercase tracking-wide justify-center border-t border-slate-100 pt-6">
-        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i data-lucide="check" class="w-2.5 h-2.5"></i></div> Present</div>
-        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="x" class="w-2.5 h-2.5"></i></div> Absent</div>
-        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center"><i data-lucide="clock" class="w-2.5 h-2.5"></i></div> Late</div>
-        <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div> No Class</div>
+        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i data-lucide="check" class="w-2.5 h-2.5"></i></div> Keldi</div>
+        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center"><i data-lucide="x" class="w-2.5 h-2.5"></i></div> Kelmadi</div>
+        <div class="flex items-center gap-2"><div class="w-4 h-4 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center"><i data-lucide="clock" class="w-2.5 h-2.5"></i></div> Kechikdi</div>
+        <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div> Dars Yo'q</div>
     </div>
 </div>

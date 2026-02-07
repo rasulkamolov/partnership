@@ -10,7 +10,7 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
             <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
                 <i data-lucide="user-group" class="text-indigo-600 w-5 h-5"></i>
             </div>
-            <p class="text-slate-500 font-bold text-xs uppercase tracking-wide">Total Students</p>
+            <p class="text-slate-500 font-bold text-xs uppercase tracking-wide">Jami O'quvchilar</p>
         </div>
         <h3 class="text-3xl font-black text-slate-900"><?= $total_students ?></h3>
     </div>
@@ -20,7 +20,7 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
             <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
                 <i data-lucide="building" class="text-emerald-600 w-5 h-5"></i>
             </div>
-            <p class="text-slate-500 font-bold text-xs uppercase tracking-wide">Partner Schools</p>
+            <p class="text-slate-500 font-bold text-xs uppercase tracking-wide">Hamkor Maktablar</p>
         </div>
         <h3 class="text-3xl font-black text-slate-900"><?= $total_schools ?></h3>
     </div>
@@ -30,7 +30,7 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
         <div class="relative z-10 flex justify-between items-start h-full flex-col">
             <div class="w-full flex justify-between items-start">
                 <div>
-                    <p class="text-indigo-300 font-bold text-xs uppercase mb-1 tracking-widest">Daily Absence Rate</p>
+                    <p class="text-indigo-300 font-bold text-xs uppercase mb-1 tracking-widest">Kunlik Kelmaganlar Foizi</p>
                     <h3 class="text-4xl font-black tracking-tighter"><?= $total_students > 0 ? round(($absent_today / $total_students) * 100, 1) : 0 ?>%</h3>
                 </div>
                 <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
@@ -49,19 +49,19 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
     <div class="bg-white p-8 rounded-3xl border border-slate-200/60 hover:shadow-lg transition duration-500 group">
         <div class="flex items-center gap-3 mb-6">
             <div class="bg-indigo-50 p-2.5 rounded-xl text-indigo-600 group-hover:scale-110 transition"><i data-lucide="plus-circle" class="w-6 h-6"></i></div>
-            <h3 class="text-xl font-black text-slate-900">Register Partner</h3>
+            <h3 class="text-xl font-black text-slate-900">Hamkor Qo'shish</h3>
         </div>
         <form method="POST" class="space-y-4">
             <div class="space-y-3">
-                <input type="text" name="sch_name" placeholder="Official Institution Name" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                <input type="text" name="sch_name" placeholder="Muassasa Nomi" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="text" name="sch_user" placeholder="Username" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
-                    <input type="password" name="sch_pass" placeholder="Password" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                    <input type="text" name="sch_user" placeholder="Foydalanuvchi nomi" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                    <input type="password" name="sch_pass" placeholder="Parol" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
                 </div>
-                <input type="text" name="sch_contact" placeholder="Contact Information" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                <input type="text" name="sch_contact" placeholder="Aloqa Ma'lumotlari" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
             </div>
             <button name="add_school" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-slate-900 transition shadow-lg shadow-indigo-500/30 flex justify-center gap-2 items-center text-sm">
-                <span>Establish Partnership</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <span>Hamkorlikni Boshlash</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
         </form>
     </div>
@@ -69,27 +69,27 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
     <div class="bg-slate-50/50 p-8 rounded-3xl border border-slate-200/60 hover:shadow-lg hover:bg-white transition duration-500 group">
         <div class="flex items-center gap-3 mb-6">
             <div class="bg-white p-2.5 rounded-xl text-indigo-600 group-hover:scale-110 transition shadow-sm ring-1 ring-slate-100"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
-            <h3 class="text-xl font-black text-indigo-950">Enroll Student</h3>
+            <h3 class="text-xl font-black text-indigo-950">O'quvchi Qo'shish</h3>
         </div>
         <form method="POST" class="space-y-4">
-            <input type="text" name="st_name" placeholder="Full Name" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
+            <input type="text" name="st_name" placeholder="To'liq Ism" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
             <select name="st_school" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
-                <option value="" disabled selected>Select Partner School</option>
+                <option value="" disabled selected>Hamkor Maktabni Tanlang</option>
                 <?php foreach($db->query("SELECT * FROM schools WHERE id > 1") as $s): ?>
                     <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <input type="text" name="st_group" placeholder="Educational Group" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
+            <input type="text" name="st_group" placeholder="Ta'lim Guruhi" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
             <div class="grid grid-cols-2 gap-3">
-                <input type="number" name="st_fee" placeholder="Fee (UZS)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
+                <input type="number" name="st_fee" placeholder="To'lov (SO'M)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
                 <select name="st_schedule" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600">
-                    <option value="odd">Odd (M/W/F)</option>
-                    <option value="even">Even (T/T/S)</option>
-                    <option value="everyday">Every Day</option>
+                    <option value="odd">Toq (Du/Chor/Ju)</option>
+                    <option value="even">Juft (Se/Pay/Sha)</option>
+                    <option value="everyday">Har Kuni</option>
                 </select>
             </div>
             <button name="add_student" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-600 transition shadow-lg flex justify-center gap-2 items-center text-sm">
-                <span>Confirm Enrollment</span> <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>Ro'yxatga Olish</span> <i data-lucide="check-circle" class="w-4 h-4"></i>
             </button>
         </form>
     </div>

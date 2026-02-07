@@ -3,7 +3,11 @@
 
 $curr_month = date('n');
 $curr_year = date('Y');
-$month_name = date('F');
+$uz_months = [
+    1 => 'Yanvar', 2 => 'Fevral', 3 => 'Mart', 4 => 'Aprel', 5 => 'May', 6 => 'Iyun',
+    7 => 'Iyul', 8 => 'Avgust', 9 => 'Sentabr', 10 => 'Oktabr', 11 => 'Noyabr', 12 => 'Dekabr'
+];
+$month_name = $uz_months[$curr_month];
 $financials = [];
 $total_revenue = 0;
 
@@ -64,16 +68,16 @@ $att_rate = round(($att_stats['present'] / $total_recs) * 100, 1);
 <div class="grid grid-cols-3 gap-6 mb-8 animate-fade-in-up">
     <div class="bg-indigo-600 p-8 rounded-3xl text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group hover:scale-[1.02] transition duration-500">
         <div class="absolute -right-10 -bottom-10 bg-white/10 w-40 h-40 rounded-full blur-[50px] group-hover:blur-[80px] transition duration-700"></div>
-        <p class="font-bold text-indigo-200 uppercase text-[10px] mb-2 tracking-widest relative z-10"><?= $month_name ?> Revenue</p>
+        <p class="font-bold text-indigo-200 uppercase text-[10px] mb-2 tracking-widest relative z-10"><?= $month_name ?> Tushumi</p>
         <h3 class="text-3xl font-black relative z-10 tracking-tight"><?= render_currency($total_revenue) ?></h3>
         <i data-lucide="wallet" class="absolute top-6 right-6 text-white/20 w-8 h-8"></i>
     </div>
     <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm hover:scale-[1.02] transition duration-500 group">
-        <p class="font-bold text-slate-400 uppercase text-[10px] mb-2 tracking-widest">Gov. Subsidy (80%)</p>
+        <p class="font-bold text-slate-400 uppercase text-[10px] mb-2 tracking-widest">Davlat Subsidiyasi (80%)</p>
         <h3 class="text-3xl font-black text-emerald-600 tracking-tight group-hover:text-emerald-500 transition"><?= render_currency($total_gov) ?></h3>
     </div>
     <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm hover:scale-[1.02] transition duration-500 group">
-        <p class="font-bold text-slate-400 uppercase text-[10px] mb-2 tracking-widest">Parent Contr. (20%)</p>
+        <p class="font-bold text-slate-400 uppercase text-[10px] mb-2 tracking-widest">Ota-ona To'lovi (20%)</p>
         <h3 class="text-3xl font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition"><?= render_currency($total_parent) ?></h3>
     </div>
 </div>
@@ -81,12 +85,12 @@ $att_rate = round(($att_stats['present'] / $total_recs) * 100, 1);
 <div class="bg-white rounded-3xl p-8 mb-8 border border-slate-200/60 shadow-sm overflow-hidden hover:shadow-lg transition duration-500">
     <div class="flex items-center gap-3 mb-6">
         <div class="bg-indigo-50 p-2 rounded-xl"><i data-lucide="table" class="text-indigo-600 w-5 h-5"></i></div>
-        <h3 class="text-xl font-black text-slate-900">Financial Breakdown</h3>
+        <h3 class="text-xl font-black text-slate-900">Moliyaviy Hisobot</h3>
     </div>
     <div class="max-h-80 overflow-y-auto custom-scroll pr-2">
         <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/80 backdrop-blur-sm text-slate-400 text-[10px] font-black uppercase tracking-widest sticky top-0 z-10 border-b border-slate-100">
-                <tr><th class="p-4 pl-6">Student</th><th class="p-4">Attended</th><th class="p-4">Earned</th><th class="p-4">Gov (80%)</th><th class="p-4 pr-6">Parent (20%)</th></tr>
+                <tr><th class="p-4 pl-6">O'quvchi</th><th class="p-4">Qatnashdi</th><th class="p-4">Ishlab Topildi</th><th class="p-4">Davlat (80%)</th><th class="p-4 pr-6">Ota-ona (20%)</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
                 <?php foreach($financials as $f): ?>
@@ -95,7 +99,14 @@ $att_rate = round(($att_stats['present'] / $total_recs) * 100, 1);
                         <div class="font-bold text-slate-900 text-sm"><?= htmlspecialchars($f['name']) ?></div>
                         <div class="text-[10px] uppercase font-bold text-slate-400 mt-0.5 flex items-center gap-2">
                             <span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 border border-slate-200/50"><?= htmlspecialchars($f['school']) ?></span>
-                            <span class="text-indigo-400"><?= ucfirst(htmlspecialchars($f['schedule'])) ?></span>
+                            <span class="text-indigo-400">
+                                <?php
+                                $sch = htmlspecialchars($f['schedule']);
+                                if ($sch == 'odd') echo 'Toq';
+                                elseif ($sch == 'even') echo 'Juft';
+                                else echo 'Har Kuni';
+                                ?>
+                            </span>
                         </div>
                     </td>
                     <td class="p-4 font-bold text-indigo-600 text-sm"><?= $f['attended'] ?> <span class="text-slate-300 font-normal">/</span> <?= $f['days'] ?></td>
@@ -114,44 +125,44 @@ $att_rate = round(($att_stats['present'] / $total_recs) * 100, 1);
     <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
         <div class="flex items-center gap-3">
             <div class="bg-rose-50 p-2 rounded-xl"><i data-lucide="pie-chart" class="text-rose-500 w-5 h-5"></i></div>
-            <h3 class="text-xl font-black text-slate-900">Attendance Analytics</h3>
+            <h3 class="text-xl font-black text-slate-900">Davomat Analitikasi</h3>
         </div>
         <form method="POST" class="flex gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/60 shadow-inner">
             <input type="date" name="start_date" value="<?= htmlspecialchars($start_date) ?>" class="px-3 py-2 bg-white rounded-xl font-bold text-[11px] border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 transition shadow-sm">
             <span class="self-center text-slate-300 font-bold">-</span>
             <input type="date" name="end_date" value="<?= htmlspecialchars($end_date) ?>" class="px-3 py-2 bg-white rounded-xl font-bold text-[11px] border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 transition shadow-sm">
-            <button class="bg-indigo-600 text-white px-4 rounded-xl font-bold text-[11px] hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20">Filter</button>
+            <button class="bg-indigo-600 text-white px-4 rounded-xl font-bold text-[11px] hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20">Filtrlash</button>
             <button type="submit" name="export_report" value="1" class="bg-emerald-500 text-white px-4 rounded-xl font-bold text-[11px] hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 flex items-center gap-1.5">
-                <i data-lucide="download" class="w-3 h-3"></i> Export
+                <i data-lucide="download" class="w-3 h-3"></i> Eksport
             </button>
         </form>
     </div>
 
     <div class="grid grid-cols-4 gap-4 mb-8">
         <div class="p-6 bg-gradient-to-br from-slate-50 to-white border border-slate-100 rounded-3xl text-center shadow-sm hover:shadow-md transition duration-300 group">
-            <p class="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Rate</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Foiz</p>
             <p class="text-3xl font-black text-indigo-600 group-hover:scale-110 transition duration-300"><?= $att_rate ?>%</p>
         </div>
         <div class="p-6 bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 rounded-3xl text-center shadow-sm hover:shadow-md transition duration-300 group">
-            <p class="text-[10px] font-black text-emerald-400 uppercase mb-1 tracking-widest">Present</p>
+            <p class="text-[10px] font-black text-emerald-400 uppercase mb-1 tracking-widest">Keldi</p>
             <p class="text-3xl font-black text-emerald-600 group-hover:scale-110 transition duration-300"><?= $att_stats['present'] ?></p>
         </div>
         <div class="p-6 bg-gradient-to-br from-rose-50 to-white border border-rose-100 rounded-3xl text-center shadow-sm hover:shadow-md transition duration-300 group">
-            <p class="text-[10px] font-black text-rose-400 uppercase mb-1 tracking-widest">Absent</p>
+            <p class="text-[10px] font-black text-rose-400 uppercase mb-1 tracking-widest">Kelmadi</p>
             <p class="text-3xl font-black text-rose-500 group-hover:scale-110 transition duration-300"><?= $att_stats['absent'] ?></p>
         </div>
         <div class="p-6 bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200 rounded-3xl text-center shadow-sm hover:shadow-md transition duration-300 group">
-            <p class="text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">Total</p>
+            <p class="text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">Jami</p>
             <p class="text-3xl font-black text-slate-700 group-hover:scale-110 transition duration-300"><?= $att_stats['total'] ?></p>
         </div>
     </div>
 
     <div class="bg-slate-50/50 rounded-3xl p-6 border border-slate-200/60">
-        <h4 class="font-bold text-slate-400 uppercase text-[10px] mb-4 tracking-widest ml-2">Detailed Breakdown</h4>
+        <h4 class="font-bold text-slate-400 uppercase text-[10px] mb-4 tracking-widest ml-2">Batafsil Tahlil</h4>
         <div class="max-h-80 overflow-y-auto custom-scroll pr-2">
             <table class="w-full text-left">
                 <thead class="text-slate-400 text-[10px] font-black uppercase tracking-widest sticky top-0 bg-slate-50/90 backdrop-blur-sm z-10">
-                    <tr><th class="pb-3 pl-4">Student</th><th class="pb-3">Present</th><th class="pb-3">Absent</th><th class="pb-3 pr-4 text-right">Rate</th></tr>
+                    <tr><th class="pb-3 pl-4">O'quvchi</th><th class="pb-3">Keldi</th><th class="pb-3">Kelmadi</th><th class="pb-3 pr-4 text-right">Foiz</th></tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200/50">
                     <?php

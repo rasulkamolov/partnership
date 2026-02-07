@@ -16,6 +16,21 @@ $att_q = "SELECT s.*, sc.name as s_name, a.status as today_status
 if (!$is_admin) $att_q .= " AND s.school_id = $uid";
 
 $students = $db->query($att_q)->fetchAll();
+
+// Translation Helper for Day Type
+$day_type_uz = match($day_type) {
+    'odd' => 'Toq',
+    'even' => 'Juft',
+    'sunday' => 'Yakshanba',
+    default => ucfirst($day_type)
+};
+
+// Uzbek Day Names
+$uz_days = [
+    1 => 'Dushanba', 2 => 'Seshanba', 3 => 'Chorshanba', 4 => 'Payshanba',
+    5 => 'Juma', 6 => 'Shanba', 7 => 'Yakshanba'
+];
+$day_name = $uz_days[$dow];
 ?>
 <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm relative overflow-hidden min-h-[500px]">
     <!-- Decorative Background -->
@@ -24,14 +39,14 @@ $students = $db->query($att_q)->fetchAll();
 
     <div class="flex justify-between items-end mb-8">
         <div>
-            <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Daily Roster</h3>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Kunlik Davomat</h3>
             <p class="text-slate-500 text-sm font-medium">
-                Showing students for <span class="text-indigo-600 font-bold uppercase"><?= ucfirst($day_type) ?> Days</span> & <span class="text-indigo-600 font-bold uppercase">Every Day</span>
+                Ko'rsatilmoqda: <span class="text-indigo-600 font-bold uppercase"><?= $day_type_uz ?> Kunlar</span> & <span class="text-indigo-600 font-bold uppercase">Har Kuni</span>
             </p>
         </div>
         <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200/60 shadow-sm">
             <i data-lucide="calendar" class="text-indigo-500 w-4 h-4"></i>
-            <span class="text-slate-700 font-bold text-sm"><?= date('M d, Y') ?></span>
+            <span class="text-slate-700 font-bold text-sm"><?= date('d.m.Y') ?></span>
         </div>
     </div>
 
@@ -41,17 +56,17 @@ $students = $db->query($att_q)->fetchAll();
                 <div class="bg-slate-50 p-6 rounded-full mb-4">
                     <i data-lucide="coffee" class="text-slate-300 w-10 h-10"></i>
                 </div>
-                <h4 class="text-slate-900 font-bold text-lg mb-1">No Classes Scheduled</h4>
-                <p class="text-slate-500 text-sm max-w-xs">There are no students scheduled for today (<?= date('l') ?>).</p>
+                <h4 class="text-slate-900 font-bold text-lg mb-1">Bugun Darslar Yo'q</h4>
+                <p class="text-slate-500 text-sm max-w-xs">Bugungi kun (<?= $day_name ?>) uchun o'quvchilar rejalashtirilmagan.</p>
             </div>
         <?php else: ?>
         <div class="overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50/80 backdrop-blur-sm text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200/60">
                     <tr>
-                        <th class="p-4 pl-6 w-1/3">Student</th>
-                        <th class="p-4 w-1/6">Group</th>
-                        <th class="p-4 text-center">Attendance Status</th>
+                        <th class="p-4 pl-6 w-1/3">O'quvchi</th>
+                        <th class="p-4 w-1/6">Guruh</th>
+                        <th class="p-4 text-center">Davomat Holati</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
@@ -78,21 +93,18 @@ $students = $db->query($att_q)->fetchAll();
                         <td class="p-4">
                             <div class="flex justify-center gap-2">
                                 <?php if($is_admin): ?>
-                                    <?php foreach(['Present', 'Absent', 'Late'] as $status): ?>
+                                    <?php
+                                    $statuses = ['Present' => 'Keldi', 'Absent' => 'Kelmadi', 'Late' => 'Kechikdi'];
+                                    foreach($statuses as $val => $label): ?>
                                     <label class="cursor-pointer relative">
-                                        <input type="radio" name="att[<?=$row['id']?>]" value="<?=$status?>" class="hidden peer" <?= $status == $current_status ? 'checked' : '' ?>>
+                                        <input type="radio" name="att[<?=$row['id']?>]" value="<?=$val?>" class="hidden peer" <?= $val == $current_status ? 'checked' : '' ?>>
                                         <span class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-500 font-bold text-[11px] transition-all duration-200 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 peer-checked:shadow-md hover:bg-slate-50 block text-center min-w-[70px]">
-                                            <?=$status?>
+                                            <?=$label?>
                                         </span>
                                     </label>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <div class="px-4 py-2 rounded-lg border font-bold text-xs text-center min-w-[80px]
-                                        <?= $current_status == 'Present' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                           ($current_status == 'Absent' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                           'bg-amber-50 text-amber-600 border-amber-100') ?>">
-                                        <?= $current_status ?>
-                                    </div>
+                                    <?= get_student_status_badge($row['today_status'] ?? 'Pending') ?>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -106,7 +118,7 @@ $students = $db->query($att_q)->fetchAll();
         <div class="mt-8 text-center sticky bottom-0 z-20">
             <button name="save_att" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold text-sm hover:scale-105 hover:bg-indigo-600 transition-all duration-300 shadow-xl shadow-slate-900/20 flex items-center gap-2 mx-auto">
                 <i data-lucide="save" class="w-4 h-4"></i>
-                <span>Publish Attendance</span>
+                <span>Davomatni Saqlash</span>
             </button>
         </div>
         <?php endif; ?>

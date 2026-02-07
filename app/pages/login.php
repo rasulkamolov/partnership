@@ -2,11 +2,11 @@
 // app/pages/login.php
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oxford LC Infinity | Enterprise Login</title>
+    <title>Oxford LC Infinity | Tizimga Kirish</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -40,11 +40,11 @@
 
             <div class="space-y-6 max-w-lg">
                 <h1 class="text-5xl font-black text-white leading-tight tracking-tight">
-                    Elevate Your <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Education Management</span>
+                    Ta'lim Boshqaruvini <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Yangi Bosqichga Ko'taring</span>
                 </h1>
                 <p class="text-lg text-slate-400 leading-relaxed font-medium">
-                    A centralized platform designed for modern educational institutions. Streamline attendance, manage partners, and gain actionable financial insights.
+                    Zamonaviy o'quv markazlari uchun markazlashgan platforma. Davomatni kuzatib boring, hamkorlarni boshqaring va moliyaviy tahlillarni oling.
                 </p>
             </div>
         </div>
@@ -53,11 +53,11 @@
         <div class="relative z-10 grid grid-cols-2 gap-8 border-t border-white/10 pt-8 mt-12 animate-fade-in-up" style="animation-delay: 0.2s; animation-fill-mode: both;">
             <div>
                 <p class="text-2xl font-bold text-white mb-1">99.9%</p>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Uptime Reliability</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Barqaror Ishlash</p>
             </div>
             <div>
-                <p class="text-2xl font-bold text-white mb-1">Secure</p>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Encryption</p>
+                <p class="text-2xl font-bold text-white mb-1">Xavfsiz</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Korporativ Shifrlash</p>
             </div>
         </div>
     </div>
@@ -66,8 +66,8 @@
     <div class="flex items-center justify-center p-8 bg-white lg:rounded-l-[3rem] relative z-20 shadow-2xl shadow-black/50 animate-fade-in-up" style="animation-delay: 0.1s; animation-fill-mode: both;">
         <div class="w-full max-w-md space-y-8">
             <div class="text-center lg:text-left">
-                <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Welcome Back</h2>
-                <p class="text-slate-500 font-medium">Please enter your credentials to access the console.</p>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Xush Kelibsiz</h2>
+                <p class="text-slate-500 font-medium">Iltimos, tizimga kirish uchun ma'lumotlaringizni kiriting.</p>
             </div>
 
             <?php if(isset($err)): ?>
@@ -79,37 +79,37 @@
 
             <form method="POST" class="space-y-5">
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Identifier</label>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Login (Foydalanuvchi nomi)</label>
                     <div class="relative group">
                         <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-600 transition-colors duration-300"></i>
-                        <input type="text" name="user" placeholder="Enter your username" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition font-semibold text-slate-700 placeholder:text-slate-400" required>
+                        <input type="text" name="user" placeholder="Loginingizni kiriting" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition font-semibold text-slate-700 placeholder:text-slate-400" required>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Security Key</label>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Parol</label>
                     <div class="relative group">
                         <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-600 transition-colors duration-300"></i>
-                        <input type="password" name="pass" placeholder="Enter your password" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition font-semibold text-slate-700 placeholder:text-slate-400" required>
+                        <input type="password" name="pass" placeholder="Parolingizni kiriting" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition font-semibold text-slate-700 placeholder:text-slate-400" required>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between">
                     <label class="flex items-center gap-2 cursor-pointer group">
                         <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition cursor-pointer">
-                        <span class="text-sm font-bold text-slate-500 group-hover:text-indigo-600 transition">Remember me</span>
+                        <span class="text-sm font-bold text-slate-500 group-hover:text-indigo-600 transition">Eslab qolish</span>
                     </label>
-                    <a href="#" class="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition">Forgot password?</a>
+                    <a href="#" class="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition">Parolni unutdingizmi?</a>
                 </div>
 
                 <button name="login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-xl shadow-slate-900/20 flex justify-center items-center gap-2 group transform active:scale-[0.98]">
-                    <span>Authorize Access</span>
+                    <span>Tizimga Kirish</span>
                     <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </form>
 
             <div class="pt-6 border-t border-slate-100 text-center">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Protected by Enterprise Grade Security</p>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Korporativ darajadagi xavfsizlik bilan himoyalangan</p>
             </div>
         </div>
     </div>

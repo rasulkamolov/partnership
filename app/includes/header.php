@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <title>Oxford LC Infinity | Enterprise</title>
@@ -26,39 +26,39 @@
         </div>
 
         <nav class="space-y-1.5 flex-1">
-            <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">Core</div>
+            <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-3">Asosiy</div>
             <a href="?p=dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= (!isset($_GET['p']) || $_GET['p']=='dashboard') ? 'tab-active' : '' ?>">
-                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> <span class="font-semibold">Dashboard</span>
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> <span class="font-semibold">Boshqaruv Paneli</span>
             </a>
             <a href="?p=attendance" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='attendance' ? 'tab-active' : '' ?>">
-                <i data-lucide="calendar-check" class="w-4 h-4"></i> <span class="font-semibold">Attendance</span>
+                <i data-lucide="calendar-check" class="w-4 h-4"></i> <span class="font-semibold">Davomat</span>
             </a>
             <a href="?p=monthly" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='monthly' ? 'tab-active' : '' ?>">
-                <i data-lucide="calendar-days" class="w-4 h-4"></i> <span class="font-semibold">Monthly View</span>
+                <i data-lucide="calendar-days" class="w-4 h-4"></i> <span class="font-semibold">Oylik Ko'rinish</span>
             </a>
 
             <?php if($is_admin): ?>
-                <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-6 mb-3">Management</div>
+                <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-6 mb-3">Boshqaruv</div>
                 <a href="?p=schools" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='schools' ? 'tab-active' : '' ?>">
-                    <i data-lucide="building-2" class="w-4 h-4"></i> <span class="font-semibold">Schools</span>
+                    <i data-lucide="building-2" class="w-4 h-4"></i> <span class="font-semibold">Maktablar</span>
                 </a>
                 <a href="?p=students" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='students' ? 'tab-active' : '' ?>">
-                    <i data-lucide="users" class="w-4 h-4"></i> <span class="font-semibold">Students</span>
+                    <i data-lucide="users" class="w-4 h-4"></i> <span class="font-semibold">O'quvchilar</span>
                 </a>
                 <a href="?p=pricing" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='pricing' ? 'tab-active' : '' ?>">
-                    <i data-lucide="dollar-sign" class="w-4 h-4"></i> <span class="font-semibold">Pricing</span>
+                    <i data-lucide="dollar-sign" class="w-4 h-4"></i> <span class="font-semibold">Narxlar</span>
                 </a>
             <?php endif; ?>
 
-            <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-6 mb-3">Insights</div>
+            <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-6 mb-3">Tahlillar</div>
             <a href="?p=reports" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='reports' ? 'tab-active' : '' ?>">
-                <i data-lucide="bar-chart-horizontal" class="w-4 h-4"></i> <span class="font-semibold">Analytics</span>
+                <i data-lucide="bar-chart-horizontal" class="w-4 h-4"></i> <span class="font-semibold">Analitika</span>
             </a>
         </nav>
 
         <div class="mt-auto pt-6 border-t border-white/5">
             <a href="?logout=1" class="flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition group text-sm">
-                <i data-lucide="log-out" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i> <span class="font-bold">Sign Out</span>
+                <i data-lucide="log-out" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i> <span class="font-bold">Chiqish</span>
             </a>
         </div>
     </aside>
@@ -66,8 +66,21 @@
     <main class="ml-64 flex-1 p-8 min-h-screen">
         <header class="flex justify-between items-end mb-10 animate-fade-in-down">
             <div>
-                <h2 class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-1">Enterprise Console</h2>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight"><?= ucfirst($_GET['p'] ?? 'Dashboard') ?></h1>
+                <h2 class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mb-1">Korporativ Konsol</h2>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                    <?php
+                    $page_titles = [
+                        'dashboard' => 'Boshqaruv Paneli',
+                        'attendance' => 'Davomat',
+                        'monthly' => 'Oylik Ko\'rinish',
+                        'schools' => 'Maktablar',
+                        'students' => 'O\'quvchilar',
+                        'pricing' => 'Narxlar',
+                        'reports' => 'Analitika'
+                    ];
+                    echo $page_titles[$_GET['p'] ?? 'dashboard'] ?? ucfirst($_GET['p'] ?? 'Boshqaruv Paneli');
+                    ?>
+                </h1>
             </div>
 
             <div class="flex items-center gap-4 bg-white py-1.5 pl-1.5 pr-4 rounded-full border border-slate-200/60 shadow-sm hover:shadow transition duration-300">
@@ -76,7 +89,7 @@
                 </div>
                 <div class="flex flex-col">
                     <span class="text-xs font-bold text-slate-900 leading-none mb-0.5"><?= $_SESSION['name'] ?></span>
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider"><?= $is_admin ? 'Master Admin' : 'Partner' ?></span>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider"><?= $is_admin ? 'Bosh Administrator' : 'Hamkor' ?></span>
                 </div>
                 <div class="h-4 w-px bg-slate-200 mx-1"></div>
                 <div class="flex items-center gap-1.5">
@@ -84,7 +97,7 @@
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Live</span>
+                    <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Jonli</span>
                 </div>
             </div>
         </header>

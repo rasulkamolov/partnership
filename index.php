@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     if ($u && password_verify($_POST['pass'], $u['password'])) {
         $_SESSION['user_id'] = $u['id']; $_SESSION['username'] = $u['username']; $_SESSION['name'] = $u['name'];
         header("Location: index.php"); exit;
-    } $err = "Invalid credentials";
+    } $err = "Login yoki parol noto'g'ri";
 }
 
 $is_admin = ($_SESSION['username'] ?? '') === 'admin';
@@ -23,9 +23,9 @@ $uid = $_SESSION['user_id'] ?? 0;
 // Export Handler (Must be before HTML)
 if (isset($_POST['export_report'])) {
     header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="attendance_report_' . date('Y-m-d') . '.csv"');
+    header('Content-Disposition: attachment; filename="davomat_hisoboti_' . date('Y-m-d') . '.csv"');
     $output = fopen('php://output', 'w');
-    fputcsv($output, ['Student Name', 'School', 'Group', 'Total Present', 'Total Absent', 'Attendance Rate (%)']);
+    fputcsv($output, ["O'quvchi Ismi", "Maktab", "Guruh", "Jami Kelgan", "Jami Kelmagan", "Davomat Foizi (%)"]);
 
     $start = $_POST['start_date'] ?? date('Y-m-01');
     $end = $_POST['end_date'] ?? date('Y-m-t');
@@ -64,7 +64,7 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         $db->prepare("INSERT INTO schools (name, username, password, contact) VALUES (?, ?, ?, ?)")
            ->execute([$_POST['sch_name'], $_POST['sch_user'], password_hash($_POST['sch_pass'], PASSWORD_DEFAULT), $_POST['sch_contact']]);
         $redirect = isset($_GET['p']) && $_GET['p'] == 'schools' ? 'schools' : 'dashboard';
-        header("Location: ?p=$redirect&msg=Partner Registered"); exit;
+        header("Location: ?p=$redirect&msg=Hamkor ro'yxatga olindi"); exit;
     }
     if (isset($_POST['edit_school'])) {
         $params = [$_POST['sch_name'], $_POST['sch_user'], $_POST['sch_contact'], $_POST['school_id']];
@@ -74,23 +74,23 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
             array_splice($params, 3, 0, password_hash($_POST['sch_pass'], PASSWORD_DEFAULT)); // Insert password into params
         }
         $db->prepare($sql)->execute($params);
-        header("Location: ?p=schools&msg=Partner Updated"); exit;
+        header("Location: ?p=schools&msg=Hamkor ma'lumotlari yangilandi"); exit;
     }
     if (isset($_POST['delete_school'])) {
         $db->prepare("DELETE FROM schools WHERE id = ?")->execute([$_POST['school_id']]);
-        header("Location: ?p=schools&msg=Partner Deleted"); exit;
+        header("Location: ?p=schools&msg=Hamkor o'chirildi"); exit;
     }
     if (isset($_POST['add_student'])) {
         $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type) VALUES (?, ?, ?, ?, ?)")
            ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule']]);
-        header("Location: ?p=dashboard&msg=Student Enrolled"); exit;
+        header("Location: ?p=dashboard&msg=O'quvchi qo'shildi"); exit;
     }
     if (isset($_POST['save_pricing'])) {
         foreach ($_POST['fee'] as $sid => $fee) {
             $db->prepare("UPDATE students SET monthly_fee = ?, schedule_type = ? WHERE id = ?")
                ->execute([$fee, $_POST['sch'][$sid], $sid]);
         }
-        header("Location: ?p=pricing&msg=Pricing Updated"); exit;
+        header("Location: ?p=pricing&msg=Narxlar yangilandi"); exit;
     }
     if (isset($_POST['save_att'])) {
         foreach ($_POST['att'] as $sid => $status) {
@@ -103,11 +103,11 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
                 $db->prepare("INSERT INTO attendance (student_id, status) VALUES (?, ?)")->execute([$sid, $status]);
             }
         }
-        header("Location: ?p=attendance&msg=Attendance Saved"); exit;
+        header("Location: ?p=attendance&msg=Davomat saqlandi"); exit;
     }
     if (isset($_POST['delete_student'])) {
         $db->prepare("DELETE FROM students WHERE id = ?")->execute([$_POST['student_id']]);
-        header("Location: ?p=students&msg=Student deleted"); exit;
+        header("Location: ?p=students&msg=O'quvchi o'chirildi"); exit;
     }
 }
 
@@ -129,7 +129,7 @@ if (!isset($_SESSION['user_id'])) {
     if (in_array($page, $allowed_pages) && file_exists("app/pages/$page.php")) {
         include "app/pages/$page.php";
     } else {
-        echo "<div class='text-center p-20 text-slate-400 font-bold'>404 Not Found</div>";
+        echo "<div class='text-center p-20 text-slate-400 font-bold'>Sahifa topilmadi (404 Not Found)</div>";
     }
 
     include 'app/includes/footer.php';

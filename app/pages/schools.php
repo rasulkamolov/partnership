@@ -19,7 +19,7 @@ if (isset($_GET['edit_id'])) {
         <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm sticky top-8">
             <div class="flex items-center gap-3 mb-6">
                 <div class="bg-indigo-50 p-2.5 rounded-xl text-indigo-600"><i data-lucide="<?= $edit_mode ? 'edit-2' : 'plus-circle' ?>" class="w-6 h-6"></i></div>
-                <h3 class="text-xl font-black text-slate-900"><?= $edit_mode ? 'Edit Partner' : 'Register Partner' ?></h3>
+                <h3 class="text-xl font-black text-slate-900"><?= $edit_mode ? 'Hamkorni Tahrirlash' : 'Hamkor Qo\'shish' ?></h3>
             </div>
 
             <form method="POST" class="space-y-4">
@@ -32,32 +32,32 @@ if (isset($_GET['edit_id'])) {
 
                 <div class="space-y-3">
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Institution Name</label>
-                        <input type="text" name="sch_name" value="<?= $edit_mode ? htmlspecialchars($school_to_edit['name']) : '' ?>" placeholder="e.g. Cambridge School" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Muassasa Nomi</label>
+                        <input type="text" name="sch_name" value="<?= $edit_mode ? htmlspecialchars($school_to_edit['name']) : '' ?>" placeholder="masalan, Kembrij Maktabi" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Username</label>
-                        <input type="text" name="sch_user" value="<?= $edit_mode ? htmlspecialchars($school_to_edit['username']) : '' ?>" placeholder="Login identifier" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Foydalanuvchi nomi</label>
+                        <input type="text" name="sch_user" value="<?= $edit_mode ? htmlspecialchars($school_to_edit['username']) : '' ?>" placeholder="Login ID" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Password <?= $edit_mode ? '(Leave blank to keep)' : '' ?></label>
-                        <input type="password" name="sch_pass" placeholder="Secure Access Key" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" <?= $edit_mode ? '' : 'required' ?>>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Parol <?= $edit_mode ? '(O\'zgartirmaslik uchun bo\'sh qoldiring)' : '' ?></label>
+                        <input type="password" name="sch_pass" placeholder="Xavfsiz Kirish Kaliti" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" <?= $edit_mode ? '' : 'required' ?>>
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Contact Info</label>
-                        <input type="text" name="sch_contact" value="<?= $edit_mode ? htmlspecialchars($school_to_edit['contact']) : '' ?>" placeholder="Phone or Email" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Aloqa Ma'lumotlari</label>
+                        <input type="text" name="sch_contact" value="<?= $edit_mode ? htmlspecialchars($school_to_edit['contact']) : '' ?>" placeholder="Tel yoki Email" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
                     </div>
                 </div>
 
                 <div class="pt-2 flex gap-3">
                     <?php if($edit_mode): ?>
-                        <a href="?p=schools" class="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition flex justify-center items-center text-sm">Cancel</a>
+                        <a href="?p=schools" class="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition flex justify-center items-center text-sm">Bekor Qilish</a>
                     <?php endif; ?>
                     <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-slate-900 transition shadow-lg shadow-indigo-500/30 flex justify-center gap-2 items-center text-sm">
-                        <span><?= $edit_mode ? 'Update Details' : 'Establish Partnership' ?></span>
+                        <span><?= $edit_mode ? 'Ma\'lumotlarni Yangilash' : 'Hamkorlikni Boshlash' ?></span>
                         <i data-lucide="<?= $edit_mode ? 'check' : 'arrow-right' ?>" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -69,9 +69,9 @@ if (isset($_GET['edit_id'])) {
     <div class="lg:col-span-2">
         <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm min-h-[600px]">
             <div class="flex justify-between items-center mb-8">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Active Partners</h3>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Faol Hamkorlar</h3>
                 <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-500">
-                    <?= $db->query("SELECT COUNT(*) FROM schools WHERE id > 1")->fetchColumn() ?> Schools
+                    <?= $db->query("SELECT COUNT(*) FROM schools WHERE id > 1")->fetchColumn() ?> Maktab
                 </div>
             </div>
 
@@ -105,19 +105,19 @@ if (isset($_GET['edit_id'])) {
                     <div class="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                         <div class="text-right mr-2 hidden sm:block">
                             <p class="text-2xl font-black text-slate-900 leading-none"><?= $s['student_count'] ?></p>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Students</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">O'quvchi</p>
                         </div>
 
-                        <a href="?p=monthly&school_id=<?= $s['id'] ?>" class="flex-1 sm:flex-none bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white p-3 rounded-xl transition-colors duration-300 flex justify-center items-center" title="View Stats">
+                        <a href="?p=monthly&school_id=<?= $s['id'] ?>" class="flex-1 sm:flex-none bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white p-3 rounded-xl transition-colors duration-300 flex justify-center items-center" title="Statistikani Ko'rish">
                             <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                         </a>
-                        <a href="?p=schools&edit_id=<?= $s['id'] ?>" class="flex-1 sm:flex-none bg-slate-100 text-slate-600 hover:bg-indigo-500 hover:text-white p-3 rounded-xl transition-colors duration-300 flex justify-center items-center" title="Edit">
+                        <a href="?p=schools&edit_id=<?= $s['id'] ?>" class="flex-1 sm:flex-none bg-slate-100 text-slate-600 hover:bg-indigo-500 hover:text-white p-3 rounded-xl transition-colors duration-300 flex justify-center items-center" title="Tahrirlash">
                             <i data-lucide="edit-3" class="w-5 h-5"></i>
                         </a>
-                        <form method="POST" onsubmit="return confirm('Delete this school? All associated students and data will be removed.');" class="flex-1 sm:flex-none">
+                        <form method="POST" onsubmit="return confirm('Ushbu maktabni o\'chirmoqchimisiz? Barcha tegishli o\'quvchilar va ma\'lumotlar o\'chiriladi.');" class="flex-1 sm:flex-none">
                             <input type="hidden" name="delete_school" value="1">
                             <input type="hidden" name="school_id" value="<?= $s['id'] ?>">
-                            <button class="w-full bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white p-3 rounded-xl transition-colors duration-300 flex justify-center items-center" title="Delete">
+                            <button class="w-full bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white p-3 rounded-xl transition-colors duration-300 flex justify-center items-center" title="O'chirish">
                                 <i data-lucide="trash-2" class="w-5 h-5"></i>
                             </button>
                         </form>

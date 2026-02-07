@@ -25,12 +25,18 @@ function render_currency($amount) {
 }
 
 function get_student_status_badge($status) {
+    $status_uz = match($status) {
+        'Present' => 'Keldi',
+        'Absent' => 'Kelmadi',
+        'Late' => 'Kechikdi',
+        default => 'Belgilanmagan'
+    };
     $classes = match($status) {
         'Present' => 'bg-emerald-50 text-emerald-600 border border-emerald-100',
         'Absent' => 'bg-rose-50 text-rose-600 border border-rose-100',
         'Late' => 'bg-amber-50 text-amber-600 border border-amber-100',
         default => 'bg-slate-50 text-slate-500 border border-slate-100'
     };
-    return "<span class=\"px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border $classes\">$status</span>";
+    return "<span class=\"px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border $classes\">$status_uz</span>";
 }
 ?>
