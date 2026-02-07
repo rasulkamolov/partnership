@@ -33,6 +33,9 @@
             <a href="?p=attendance" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='attendance' ? 'tab-active' : '' ?>">
                 <i data-lucide="calendar-check" class="w-4 h-4"></i> <span class="font-semibold">Attendance</span>
             </a>
+            <a href="?p=monthly" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='monthly' ? 'tab-active' : '' ?>">
+                <i data-lucide="calendar-days" class="w-4 h-4"></i> <span class="font-semibold">Monthly View</span>
+            </a>
 
             <?php if($is_admin): ?>
                 <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-6 mb-3">Management</div>

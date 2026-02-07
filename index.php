@@ -108,7 +108,7 @@ if (!isset($_SESSION['user_id'])) {
     include 'app/includes/header.php';
 
     $page = $_GET['p'] ?? 'dashboard';
-    $allowed_pages = ['dashboard', 'attendance', 'reports'];
+    $allowed_pages = ['dashboard', 'attendance', 'reports', 'monthly'];
     if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing']);
 
     if (in_array($page, $allowed_pages) && file_exists("app/pages/$page.php")) {

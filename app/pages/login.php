@@ -1,28 +1,99 @@
-<div class="min-h-screen flex items-center justify-center p-4 bg-slate-950 relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-         <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px]"></div>
-         <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px]"></div>
-    </div>
-    <div class="w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 text-center border border-white/20 relative z-10 animate-fade-in-up">
-        <div class="inline-flex p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-6 shadow-xl shadow-indigo-500/30 ring-4 ring-indigo-500/10">
-            <i data-lucide="zap" class="text-white w-6 h-6"></i>
+<?php
+// app/pages/login.php
+?>
+<div class="min-h-screen grid lg:grid-cols-2 bg-slate-900">
+    <!-- Left: Branding & Visuals -->
+    <div class="relative hidden lg:flex flex-col justify-between p-16 overflow-hidden">
+        <!-- Abstract Background -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-slate-950"></div>
+            <div class="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
+            <div class="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[100px]"></div>
         </div>
-        <h1 class="text-3xl font-black text-slate-900 mb-1 tracking-tight">Oxford LC</h1>
-        <p class="text-slate-400 mb-8 font-bold uppercase text-[10px] tracking-[0.25em]">Enterprise Access</p>
-        <form method="POST" class="space-y-3">
-            <div class="group relative">
-                <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4 group-focus-within:text-indigo-500 transition duration-300"></i>
-                <input type="text" name="user" placeholder="Identifier" class="w-full pl-11 p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition font-semibold text-sm text-slate-700 placeholder:text-slate-400" required>
+
+        <!-- Content -->
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 text-white mb-12">
+                <div class="bg-indigo-500/20 backdrop-blur-md p-2 rounded-xl border border-indigo-500/30">
+                    <i data-lucide="component" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <span class="text-2xl font-black tracking-tight">INFINITY <span class="text-indigo-400">LC</span></span>
             </div>
-            <div class="group relative">
-                <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4 group-focus-within:text-indigo-500 transition duration-300"></i>
-                <input type="password" name="pass" placeholder="Secret Key" class="w-full pl-11 p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition font-semibold text-sm text-slate-700 placeholder:text-slate-400" required>
+
+            <div class="space-y-6 max-w-lg">
+                <h1 class="text-5xl font-black text-white leading-tight tracking-tight">
+                    Elevate Your <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Education Management</span>
+                </h1>
+                <p class="text-lg text-slate-400 leading-relaxed font-medium">
+                    A centralized platform designed for modern educational institutions. Streamline attendance, manage partners, and gain actionable financial insights.
+                </p>
             </div>
-            <button name="login" class="w-full bg-slate-900 text-white font-bold p-3.5 rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-lg shadow-indigo-500/20 mt-2 flex justify-center items-center gap-2 group text-sm">
-                <span>Authorize Access</span>
-                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-            </button>
-        </form>
+        </div>
+
+        <!-- Footer Stats/Info -->
+        <div class="relative z-10 grid grid-cols-2 gap-8 border-t border-white/10 pt-8 mt-12">
+            <div>
+                <p class="text-2xl font-bold text-white mb-1">99.9%</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Uptime Reliability</p>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-white mb-1">Secure</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enterprise Encryption</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Login Form -->
+    <div class="flex items-center justify-center p-8 bg-white lg:rounded-l-[3rem] relative z-20 shadow-2xl shadow-black/50">
+        <div class="w-full max-w-md space-y-8">
+            <div class="text-center lg:text-left">
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Welcome Back</h2>
+                <p class="text-slate-500 font-medium">Please enter your credentials to access the console.</p>
+            </div>
+
+            <?php if(isset($err)): ?>
+            <div class="bg-rose-50 border border-rose-100 text-rose-600 p-4 rounded-xl flex items-center gap-3 text-sm font-bold animate-pulse">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <?= $err ?>
+            </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-5">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Identifier</label>
+                    <div class="relative group">
+                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-600 transition-colors duration-300"></i>
+                        <input type="text" name="user" placeholder="Enter your username" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition font-semibold text-slate-700 placeholder:text-slate-400" required>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Security Key</label>
+                    <div class="relative group">
+                        <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-indigo-600 transition-colors duration-300"></i>
+                        <input type="password" name="pass" placeholder="Enter your password" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition font-semibold text-slate-700 placeholder:text-slate-400" required>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 transition cursor-pointer">
+                        <span class="text-sm font-bold text-slate-500 group-hover:text-indigo-600 transition">Remember me</span>
+                    </label>
+                    <a href="#" class="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition">Forgot password?</a>
+                </div>
+
+                <button name="login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-indigo-600 transition-all duration-300 shadow-xl shadow-slate-900/20 flex justify-center items-center gap-2 group transform active:scale-[0.98]">
+                    <span>Authorize Access</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </form>
+
+            <div class="pt-6 border-t border-slate-100 text-center">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Protected by Enterprise Grade Security</p>
+            </div>
+        </div>
     </div>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>lucide.createIcons();</script>
