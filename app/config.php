@@ -1,6 +1,9 @@
 <?php
 // app/config.php
 
+// Set Timezone
+date_default_timezone_set('Asia/Tashkent');
+
 // Database Connection
 $db_dir = __DIR__ . '/../data';
 if (!file_exists($db_dir)) mkdir($db_dir, 0777, true);
