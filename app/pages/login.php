@@ -1,7 +1,25 @@
 <?php
 // app/pages/login.php
 ?>
-<div class="min-h-screen grid lg:grid-cols-2 bg-slate-900">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oxford LC Infinity | Enterprise Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background: #f8fafc; }
+        .custom-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-900 antialiased text-slate-900">
+
+<div class="min-h-screen grid lg:grid-cols-2">
     <!-- Left: Branding & Visuals -->
     <div class="relative hidden lg:flex flex-col justify-between p-16 overflow-hidden">
         <!-- Abstract Background -->
@@ -12,7 +30,7 @@
         </div>
 
         <!-- Content -->
-        <div class="relative z-10">
+        <div class="relative z-10 animate-fade-in-up">
             <div class="flex items-center gap-3 text-white mb-12">
                 <div class="bg-indigo-500/20 backdrop-blur-md p-2 rounded-xl border border-indigo-500/30">
                     <i data-lucide="component" class="w-6 h-6 text-indigo-400"></i>
@@ -32,7 +50,7 @@
         </div>
 
         <!-- Footer Stats/Info -->
-        <div class="relative z-10 grid grid-cols-2 gap-8 border-t border-white/10 pt-8 mt-12">
+        <div class="relative z-10 grid grid-cols-2 gap-8 border-t border-white/10 pt-8 mt-12 animate-fade-in-up" style="animation-delay: 0.2s; animation-fill-mode: both;">
             <div>
                 <p class="text-2xl font-bold text-white mb-1">99.9%</p>
                 <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Uptime Reliability</p>
@@ -45,7 +63,7 @@
     </div>
 
     <!-- Right: Login Form -->
-    <div class="flex items-center justify-center p-8 bg-white lg:rounded-l-[3rem] relative z-20 shadow-2xl shadow-black/50">
+    <div class="flex items-center justify-center p-8 bg-white lg:rounded-l-[3rem] relative z-20 shadow-2xl shadow-black/50 animate-fade-in-up" style="animation-delay: 0.1s; animation-fill-mode: both;">
         <div class="w-full max-w-md space-y-8">
             <div class="text-center lg:text-left">
                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Welcome Back</h2>
@@ -55,7 +73,7 @@
             <?php if(isset($err)): ?>
             <div class="bg-rose-50 border border-rose-100 text-rose-600 p-4 rounded-xl flex items-center gap-3 text-sm font-bold animate-pulse">
                 <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                <?= $err ?>
+                <?= htmlspecialchars($err) ?>
             </div>
             <?php endif; ?>
 
@@ -95,6 +113,10 @@
             </div>
         </div>
     </div>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>lucide.createIcons();</script>
 </div>
+
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>
