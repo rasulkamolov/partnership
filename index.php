@@ -63,7 +63,22 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_school'])) {
         $db->prepare("INSERT INTO schools (name, username, password, contact) VALUES (?, ?, ?, ?)")
            ->execute([$_POST['sch_name'], $_POST['sch_user'], password_hash($_POST['sch_pass'], PASSWORD_DEFAULT), $_POST['sch_contact']]);
-        header("Location: ?p=dashboard&msg=Partner Registered"); exit;
+        $redirect = isset($_GET['p']) && $_GET['p'] == 'schools' ? 'schools' : 'dashboard';
+        header("Location: ?p=$redirect&msg=Partner Registered"); exit;
+    }
+    if (isset($_POST['edit_school'])) {
+        $params = [$_POST['sch_name'], $_POST['sch_user'], $_POST['sch_contact'], $_POST['school_id']];
+        $sql = "UPDATE schools SET name = ?, username = ?, contact = ? WHERE id = ?";
+        if (!empty($_POST['sch_pass'])) {
+            $sql = "UPDATE schools SET name = ?, username = ?, contact = ?, password = ? WHERE id = ?";
+            array_splice($params, 3, 0, password_hash($_POST['sch_pass'], PASSWORD_DEFAULT)); // Insert password into params
+        }
+        $db->prepare($sql)->execute($params);
+        header("Location: ?p=schools&msg=Partner Updated"); exit;
+    }
+    if (isset($_POST['delete_school'])) {
+        $db->prepare("DELETE FROM schools WHERE id = ?")->execute([$_POST['school_id']]);
+        header("Location: ?p=schools&msg=Partner Deleted"); exit;
     }
     if (isset($_POST['add_student'])) {
         $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type) VALUES (?, ?, ?, ?, ?)")
@@ -109,7 +124,7 @@ if (!isset($_SESSION['user_id'])) {
 
     $page = $_GET['p'] ?? 'dashboard';
     $allowed_pages = ['dashboard', 'attendance', 'reports', 'monthly'];
-    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing']);
+    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools']);
 
     if (in_array($page, $allowed_pages) && file_exists("app/pages/$page.php")) {
         include "app/pages/$page.php";

@@ -4,30 +4,51 @@
 // 1. Get current month/year or selected month/year
 $curr_month = isset($_GET['m']) ? (int)$_GET['m'] : (int)date('n');
 $curr_year = isset($_GET['y']) ? (int)$_GET['y'] : (int)date('Y');
+$selected_school = isset($_GET['school_id']) ? (int)$_GET['school_id'] : 0;
+
 $days_in_month = date('t', mktime(0, 0, 0, $curr_month, 1, $curr_year));
 $month_name = date('F', mktime(0, 0, 0, $curr_month, 1, $curr_year));
 
 // 2. Fetch students
 $sql = "SELECT s.*, sc.name as sname FROM students s JOIN schools sc ON s.school_id = sc.id WHERE 1=1";
 $params = [];
+
 if (!$is_admin) {
+    // Partner restriction
     $sql .= " AND s.school_id = ?";
     $params[] = $uid;
+} elseif ($selected_school > 0) {
+    // Admin filtering by school
+    $sql .= " AND s.school_id = ?";
+    $params[] = $selected_school;
 }
+
 $sql .= " ORDER BY sname, s.name";
 
 $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $students = $stmt->fetchAll();
 
-// 3. Fetch all attendance records for this month
+// 3. Fetch all attendance records for this month (and optionally school)
 $start_date = sprintf('%04d-%02d-01', $curr_year, $curr_month);
 $end_date = sprintf('%04d-%02d-%02d', $curr_year, $curr_month, $days_in_month);
 
-$att_sql = "SELECT student_id, strftime('%d', date) as day, status FROM attendance
-            WHERE date BETWEEN ? AND ?";
+$att_sql = "SELECT a.student_id, strftime('%d', a.date) as day, a.status
+            FROM attendance a
+            JOIN students s ON a.student_id = s.id
+            WHERE a.date BETWEEN ? AND ?";
+$att_params = [$start_date, $end_date];
+
+if (!$is_admin) {
+    $att_sql .= " AND s.school_id = ?";
+    $att_params[] = $uid;
+} elseif ($selected_school > 0) {
+    $att_sql .= " AND s.school_id = ?";
+    $att_params[] = $selected_school;
+}
+
 $att_stmt = $db->prepare($att_sql);
-$att_stmt->execute([$start_date, $end_date]);
+$att_stmt->execute($att_params);
 $attendance_records = $att_stmt->fetchAll(PDO::FETCH_GROUP);
 // Result: [student_id => [ [day=>'01', status=>'Present'], ... ]]
 
@@ -45,24 +66,36 @@ function get_day_status($sid, $day, $records) {
 
 <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm overflow-hidden min-h-[600px] flex flex-col">
     <!-- Header Controls -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
         <div>
             <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Monthly Overview</h3>
             <p class="text-slate-500 text-sm font-medium">Detailed attendance breakdown for <span class="text-indigo-600 font-bold"><?= $month_name ?> <?= $curr_year ?></span></p>
         </div>
 
-        <form method="GET" class="flex items-center gap-3 bg-slate-50 p-1.5 rounded-xl border border-slate-200/60 shadow-sm">
+        <form method="GET" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200/60 shadow-sm flex-wrap">
             <input type="hidden" name="p" value="monthly">
+
+            <?php if($is_admin): ?>
+            <select name="school_id" class="px-3 py-2 bg-white rounded-lg font-bold text-xs border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer max-w-[150px]">
+                <option value="0">All Schools</option>
+                <?php foreach($db->query("SELECT id, name FROM schools WHERE id > 1") as $sch): ?>
+                    <option value="<?= $sch['id'] ?>" <?= $sch['id'] == $selected_school ? 'selected' : '' ?>><?= htmlspecialchars($sch['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <?php endif; ?>
+
             <select name="m" class="px-3 py-2 bg-white rounded-lg font-bold text-xs border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer">
                 <?php for($i=1; $i<=12; $i++): ?>
                     <option value="<?=$i?>" <?= $i==$curr_month ? 'selected' : '' ?>><?= date('F', mktime(0,0,0,$i,1)) ?></option>
                 <?php endfor; ?>
             </select>
+
             <select name="y" class="px-3 py-2 bg-white rounded-lg font-bold text-xs border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer">
                 <?php for($y=date('Y')-1; $y<=date('Y')+1; $y++): ?>
                     <option value="<?=$y?>" <?= $y==$curr_year ? 'selected' : '' ?>><?=$y?></option>
                 <?php endfor; ?>
             </select>
+
             <button class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20">
                 <i data-lucide="filter" class="w-4 h-4"></i>
             </button>
@@ -91,6 +124,10 @@ function get_day_status($sid, $day, $records) {
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white text-xs">
+                <?php if(empty($students)): ?>
+                    <tr><td colspan="<?= $days_in_month + 1 ?>" class="p-10 text-center text-slate-400 font-bold">No students found for the selected criteria.</td></tr>
+                <?php endif; ?>
+
                 <?php foreach($students as $s): ?>
                 <tr class="group hover:bg-indigo-50/10 transition duration-150">
                     <td class="p-3 pl-4 sticky left-0 z-10 bg-white border-r border-slate-100 group-hover:bg-indigo-50/10 transition font-bold text-slate-700">

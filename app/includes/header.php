@@ -39,6 +39,9 @@
 
             <?php if($is_admin): ?>
                 <div class="px-3 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-6 mb-3">Management</div>
+                <a href="?p=schools" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='schools' ? 'tab-active' : '' ?>">
+                    <i data-lucide="building-2" class="w-4 h-4"></i> <span class="font-semibold">Schools</span>
+                </a>
                 <a href="?p=students" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='students' ? 'tab-active' : '' ?>">
                     <i data-lucide="users" class="w-4 h-4"></i> <span class="font-semibold">Students</span>
                 </a>
