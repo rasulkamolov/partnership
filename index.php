@@ -115,9 +115,35 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         header("Location: ?p=settings&msg=Sozlamalar saqlandi"); exit;
     }
+    if (isset($_POST['update_admin_profile'])) {
+        $user = $_POST['admin_user'];
+        $pass = $_POST['admin_pass'];
+
+        $sql = "UPDATE schools SET username = ?";
+        $params = [$user];
+
+        if (!empty($pass)) {
+            $sql .= ", password = ?";
+            $params[] = password_hash($pass, PASSWORD_DEFAULT);
+        }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $_SESSION['user_id']; // Assuming master admin ID is in session, typically 1 or seeded
+
+        // Also check if username already exists for another user?
+        // Since we are updating, if unique constraint fails, PDO throws exception.
+
+        try {
+            $db->prepare($sql)->execute($params);
+            $_SESSION['username'] = $user; // Update session
+            header("Location: ?p=settings&msg=Profil yangilandi"); exit;
+        } catch (PDOException $e) {
+            header("Location: ?p=settings&err=Bu login band"); exit;
+        }
+    }
     if (isset($_POST['add_group'])) {
-        $db->prepare("INSERT INTO groups (school_id, name, price, schedule_type) VALUES (?, ?, ?, ?)")
-           ->execute([$_POST['school_id'], $_POST['name'], $_POST['price'], $_POST['schedule']]);
+        $db->prepare("INSERT INTO groups (school_id, name, price, schedule_type) VALUES (NULL, ?, ?, ?)")
+           ->execute([$_POST['name'], $_POST['price'], $_POST['schedule']]);
         header("Location: ?p=settings&msg=Guruh qo'shildi"); exit;
     }
     if (isset($_POST['delete_group'])) {

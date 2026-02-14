@@ -29,18 +29,14 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
         const currentGroup = "<?= htmlspecialchars($student['group_name']) ?>";
         const currentSchool = <?= $student['school_id'] ?>;
 
+        // Groups are global now
         function updateGroups(keepCurrent = false) {
-            const schoolId = document.querySelector('select[name="st_school"]').value;
             const groupSelect = document.querySelector('select[name="st_group"]');
-            const schoolGroups = groups.filter(g => g.school_id == schoolId);
-
-            // Save current selection if we are keeping it (only useful if list doesn't change, but here list changes)
-            // Actually, keepCurrent is for initial load
 
             groupSelect.innerHTML = '<option value="" disabled>Guruhni Tanlang</option>';
 
             let foundCurrent = false;
-            schoolGroups.forEach(g => {
+            groups.forEach(g => {
                 const opt = document.createElement('option');
                 opt.value = g.name;
                 opt.textContent = g.name;
@@ -53,12 +49,9 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
                 groupSelect.appendChild(opt);
             });
 
-            // If current group not found in new list (e.g. school changed), select default
-            if (!foundCurrent && !keepCurrent) {
-                groupSelect.value = "";
-                document.querySelector('input[name="st_fee"]').value = '';
-                document.querySelector('select[name="st_schedule"]').value = 'odd';
-            }
+            // If current group not found (e.g. was deleted or custom), still select it?
+            // If keepCurrent is true but we didn't find it in list, maybe add it as custom option?
+            // For now, if not found, we just let it be empty or default.
         }
 
         function updateGroupDetails() {
@@ -88,7 +81,7 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
 
         <div>
             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Maktab</label>
-            <select name="st_school" onchange="updateGroups(false)" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition cursor-pointer" required>
+            <select name="st_school" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition cursor-pointer" required>
                 <?php foreach($db->query("SELECT * FROM schools WHERE id > 1") as $s): ?>
                     <option value="<?=$s['id']?>" <?= $s['id'] == $student['school_id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
                 <?php endforeach; ?>

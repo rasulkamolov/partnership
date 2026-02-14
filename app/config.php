@@ -17,6 +17,8 @@ $db->exec("CREATE TABLE IF NOT EXISTS attendance (id INTEGER PRIMARY KEY AUTOINC
 
 // New Tables for Settings and Groups
 $db->exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)");
+// Updated: groups table no longer strictly tied to school_id (school_id is now nullable, effectively global)
+// We'll treat school_id=NULL or 0 as 'Global'
 $db->exec("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, price REAL, schedule_type TEXT, FOREIGN KEY(school_id) REFERENCES schools(id))");
 
 // Helper: Upgrade Schema if columns missing (idempotent)

@@ -23,6 +23,31 @@ $company_name = get_setting('company_name');
         </form>
     </div>
 
+    <!-- Admin Profile Settings -->
+    <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-slate-900 p-2.5 rounded-xl text-white"><i data-lucide="user-cog" class="w-6 h-6"></i></div>
+            <h3 class="text-xl font-black text-slate-900">Admin Login & Parol</h3>
+        </div>
+        <form method="POST" class="max-w-md space-y-4">
+            <input type="hidden" name="update_admin_profile" value="1">
+
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Yangi Login (Username)</label>
+                <input type="text" name="admin_user" value="<?= htmlspecialchars($_SESSION['username']) ?>" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-500/50 border border-slate-100 focus:bg-white transition" required>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Yangi Parol</label>
+                <input type="password" name="admin_pass" placeholder="O'zgartirish uchun yangi parol kiriting" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-slate-500/50 border border-slate-100 focus:bg-white transition">
+            </div>
+
+            <button type="submit" class="bg-slate-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-slate-800 transition shadow-lg shadow-slate-900/30 flex items-center gap-2 text-sm">
+                <span>Yangilash</span> <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+        </form>
+    </div>
+
     <!-- Groups Management -->
     <div class="grid lg:grid-cols-3 gap-8">
         <!-- Add Group Form -->
@@ -37,16 +62,6 @@ $company_name = get_setting('company_name');
                     <input type="hidden" name="add_group" value="1">
 
                     <div class="space-y-3">
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Maktab</label>
-                            <select name="school_id" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition cursor-pointer" required>
-                                <option value="" disabled selected>Tanlang</option>
-                                <?php foreach($db->query("SELECT * FROM schools WHERE id > 1") as $s): ?>
-                                    <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Guruh Nomi</label>
                             <input type="text" name="name" placeholder="Masalan: IELTS 1" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition" required>
@@ -89,20 +104,14 @@ $company_name = get_setting('company_name');
                         <thead class="bg-slate-50/80 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200/60 backdrop-blur-sm">
                             <tr>
                                 <th class="p-4 pl-6">Guruh</th>
-                                <th class="p-4">Maktab</th>
                                 <th class="p-4">Narx / Jadval</th>
                                 <th class="p-4 text-right pr-6">Amallar</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
-                            <?php foreach($db->query("SELECT g.*, s.name as school_name FROM groups g JOIN schools s ON g.school_id = s.id ORDER BY s.name, g.name") as $g): ?>
+                            <?php foreach($db->query("SELECT * FROM groups ORDER BY name") as $g): ?>
                             <tr class="group hover:bg-slate-50/50 transition duration-200">
                                 <td class="p-4 pl-6 font-bold text-slate-800 text-sm"><?= htmlspecialchars($g['name']) ?></td>
-                                <td class="p-4">
-                                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wide border border-indigo-100">
-                                        <?= htmlspecialchars($g['school_name']) ?>
-                                    </span>
-                                </td>
                                 <td class="p-4">
                                     <div class="flex flex-col">
                                         <span class="font-bold text-slate-700 text-xs"><?= number_format($g['price'], 0) ?> UZS</span>
