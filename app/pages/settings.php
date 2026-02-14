@@ -1,0 +1,135 @@
+<?php
+// app/pages/settings.php
+if (!$is_admin) { header("Location: ?p=dashboard"); exit; }
+
+$company_name = get_setting('company_name');
+?>
+
+<div class="space-y-8">
+    <!-- General Settings -->
+    <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-indigo-50 p-2.5 rounded-xl text-indigo-600"><i data-lucide="settings" class="w-6 h-6"></i></div>
+            <h3 class="text-xl font-black text-slate-900">Umumiy Sozlamalar</h3>
+        </div>
+        <form method="POST" class="max-w-md">
+            <div class="mb-4">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Kompaniya Nomi</label>
+                <input type="text" name="settings[company_name]" value="<?= htmlspecialchars($company_name) ?>" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+            </div>
+            <button name="save_settings" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 flex items-center gap-2 text-sm">
+                <span>Saqlash</span> <i data-lucide="save" class="w-4 h-4"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Groups Management -->
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Add Group Form -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm sticky top-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-emerald-50 p-2.5 rounded-xl text-emerald-600"><i data-lucide="layers" class="w-6 h-6"></i></div>
+                    <h3 class="text-xl font-black text-slate-900">Guruh Qo'shish</h3>
+                </div>
+
+                <form method="POST" class="space-y-4">
+                    <input type="hidden" name="add_group" value="1">
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Maktab</label>
+                            <select name="school_id" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition cursor-pointer" required>
+                                <option value="" disabled selected>Tanlang</option>
+                                <?php foreach($db->query("SELECT * FROM schools WHERE id > 1") as $s): ?>
+                                    <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Guruh Nomi</label>
+                            <input type="text" name="name" placeholder="Masalan: IELTS 1" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition" required>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Narx (SO'M)</label>
+                            <input type="number" name="price" placeholder="0" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition" required>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Jadval</label>
+                            <select name="schedule" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition cursor-pointer">
+                                <option value="odd">Toq Kunlar</option>
+                                <option value="even">Juft Kunlar</option>
+                                <option value="everyday">Har Kuni</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30 flex justify-center gap-2 items-center text-sm mt-4">
+                        <span>Qo'shish</span> <i data-lucide="plus" class="w-4 h-4"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Groups List -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm min-h-[500px]">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">Guruhlar Ro'yxati</h3>
+                    <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-500">
+                        <?= $db->query("SELECT COUNT(*) FROM groups")->fetchColumn() ?> Guruh
+                    </div>
+                </div>
+
+                <div class="overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50/80 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200/60 backdrop-blur-sm">
+                            <tr>
+                                <th class="p-4 pl-6">Guruh</th>
+                                <th class="p-4">Maktab</th>
+                                <th class="p-4">Narx / Jadval</th>
+                                <th class="p-4 text-right pr-6">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <?php foreach($db->query("SELECT g.*, s.name as school_name FROM groups g JOIN schools s ON g.school_id = s.id ORDER BY s.name, g.name") as $g): ?>
+                            <tr class="group hover:bg-slate-50/50 transition duration-200">
+                                <td class="p-4 pl-6 font-bold text-slate-800 text-sm"><?= htmlspecialchars($g['name']) ?></td>
+                                <td class="p-4">
+                                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wide border border-indigo-100">
+                                        <?= htmlspecialchars($g['school_name']) ?>
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-slate-700 text-xs"><?= number_format($g['price'], 0) ?> UZS</span>
+                                        <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mt-0.5">
+                                            <?php
+                                            if ($g['schedule_type'] == 'odd') echo 'Toq';
+                                            elseif ($g['schedule_type'] == 'even') echo 'Juft';
+                                            else echo 'Har Kuni';
+                                            ?>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-right pr-6">
+                                    <form method="POST" onsubmit="return confirm('Ushbu guruhni o\'chirmoqchimisiz?');" class="inline">
+                                        <input type="hidden" name="delete_group" value="1">
+                                        <input type="hidden" name="group_id" value="<?= $g['id'] ?>">
+                                        <button type="submit" class="text-slate-300 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition duration-300 inline-flex items-center justify-center cursor-pointer">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

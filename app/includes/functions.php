@@ -39,4 +39,11 @@ function get_student_status_badge($status) {
     };
     return "<span class=\"px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border $classes\">$status_uz</span>";
 }
+
+function get_setting($key) {
+    global $db;
+    $stmt = $db->prepare("SELECT value FROM settings WHERE key = ?");
+    $stmt->execute([$key]);
+    return $stmt->fetchColumn() ?: '';
+}
 ?>

@@ -109,6 +109,21 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         $db->prepare("DELETE FROM students WHERE id = ?")->execute([$_POST['student_id']]);
         header("Location: ?p=students&msg=O'quvchi o'chirildi"); exit;
     }
+    if (isset($_POST['save_settings'])) {
+        foreach ($_POST['settings'] as $key => $val) {
+            $db->prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)")->execute([$key, $val]);
+        }
+        header("Location: ?p=settings&msg=Sozlamalar saqlandi"); exit;
+    }
+    if (isset($_POST['add_group'])) {
+        $db->prepare("INSERT INTO groups (school_id, name, price, schedule_type) VALUES (?, ?, ?, ?)")
+           ->execute([$_POST['school_id'], $_POST['name'], $_POST['price'], $_POST['schedule']]);
+        header("Location: ?p=settings&msg=Guruh qo'shildi"); exit;
+    }
+    if (isset($_POST['delete_group'])) {
+        $db->prepare("DELETE FROM groups WHERE id = ?")->execute([$_POST['group_id']]);
+        header("Location: ?p=settings&msg=Guruh o'chirildi"); exit;
+    }
 }
 
 // View Router
@@ -124,7 +139,7 @@ if (!isset($_SESSION['user_id'])) {
 
     $page = $_GET['p'] ?? 'dashboard';
     $allowed_pages = ['dashboard', 'attendance', 'reports', 'monthly'];
-    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools']);
+    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools', 'settings']);
 
     if (in_array($page, $allowed_pages) && file_exists("app/pages/$page.php")) {
         include "app/pages/$page.php";

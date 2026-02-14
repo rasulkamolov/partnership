@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Oxford LC Infinity | Enterprise</title>
+    <title><?= get_setting('company_name') ?> | Enterprise</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
     <aside class="w-64 custom-gradient text-slate-400 p-6 flex flex-col fixed h-full shadow-2xl z-50">
         <div class="flex items-center gap-3 text-white mb-12 select-none px-2">
             <div class="bg-indigo-500 p-1.5 rounded-lg shadow-lg shadow-indigo-500/30"><i data-lucide="component" class="w-5 h-5"></i></div>
-            <span class="text-xl font-black tracking-tight">INFINITY <span class="text-indigo-400">LC</span></span>
+            <span class="text-xl font-black tracking-tight"><?= get_setting('company_name') ?></span>
         </div>
 
         <nav class="space-y-1.5 flex-1">
@@ -47,6 +47,9 @@
                 </a>
                 <a href="?p=pricing" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='pricing' ? 'tab-active' : '' ?>">
                     <i data-lucide="dollar-sign" class="w-4 h-4"></i> <span class="font-semibold">Narxlar</span>
+                </a>
+                <a href="?p=settings" class="flex items-center gap-3 px-4 py-3 rounded-xl transition sidebar-link text-sm <?= ($_GET['p'] ?? '')=='settings' ? 'tab-active' : '' ?>">
+                    <i data-lucide="settings" class="w-4 h-4"></i> <span class="font-semibold">Sozlamalar</span>
                 </a>
             <?php endif; ?>
 
@@ -76,6 +79,7 @@
                         'schools' => 'Maktablar',
                         'students' => 'O\'quvchilar',
                         'pricing' => 'Narxlar',
+                        'settings' => 'Tizim Sozlamalari',
                         'reports' => 'Analitika'
                     ];
                     echo $page_titles[$_GET['p'] ?? 'dashboard'] ?? ucfirst($_GET['p'] ?? 'Boshqaruv Paneli');

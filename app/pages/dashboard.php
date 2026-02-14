@@ -71,15 +71,48 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
             <div class="bg-white p-2.5 rounded-xl text-indigo-600 group-hover:scale-110 transition shadow-sm ring-1 ring-slate-100"><i data-lucide="user-plus" class="w-6 h-6"></i></div>
             <h3 class="text-xl font-black text-indigo-950">O'quvchi Qo'shish</h3>
         </div>
+        <?php $groups_json = json_encode($db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC)); ?>
+        <script>
+            const groups = <?= $groups_json ?>;
+            function updateGroups() {
+                const schoolId = document.querySelector('select[name="st_school"]').value;
+                const groupSelect = document.querySelector('select[name="st_group"]');
+                const schoolGroups = groups.filter(g => g.school_id == schoolId);
+
+                groupSelect.innerHTML = '<option value="" disabled selected>Guruhni Tanlang</option>';
+                schoolGroups.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.name;
+                    opt.textContent = g.name;
+                    opt.dataset.price = g.price;
+                    opt.dataset.schedule = g.schedule_type;
+                    groupSelect.appendChild(opt);
+                });
+                document.querySelector('input[name="st_fee"]').value = '';
+                document.querySelector('select[name="st_schedule"]').value = 'odd';
+            }
+            function updateGroupDetails() {
+                const groupSelect = document.querySelector('select[name="st_group"]');
+                const selectedOpt = groupSelect.options[groupSelect.selectedIndex];
+                if (selectedOpt && selectedOpt.dataset.price) {
+                    document.querySelector('input[name="st_fee"]').value = selectedOpt.dataset.price;
+                }
+                if (selectedOpt && selectedOpt.dataset.schedule) {
+                    document.querySelector('select[name="st_schedule"]').value = selectedOpt.dataset.schedule;
+                }
+            }
+        </script>
         <form method="POST" class="space-y-4">
             <input type="text" name="st_name" placeholder="To'liq Ism" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
-            <select name="st_school" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
+            <select name="st_school" onchange="updateGroups()" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
                 <option value="" disabled selected>Hamkor Maktabni Tanlang</option>
                 <?php foreach($db->query("SELECT * FROM schools WHERE id > 1") as $s): ?>
                     <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <input type="text" name="st_group" placeholder="Ta'lim Guruhi" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
+            <select name="st_group" onchange="updateGroupDetails()" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
+                <option value="" disabled selected>Avval Maktabni Tanlang</option>
+            </select>
             <div class="grid grid-cols-2 gap-3">
                 <input type="number" name="st_fee" placeholder="To'lov (SO'M)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
                 <select name="st_schedule" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600">

@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oxford LC Infinity | Tizimga Kirish</title>
+    <title><?= get_setting('company_name') ?> | Tizimga Kirish</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
                 <div class="bg-indigo-500/20 backdrop-blur-md p-2 rounded-xl border border-indigo-500/30">
                     <i data-lucide="component" class="w-6 h-6 text-indigo-400"></i>
                 </div>
-                <span class="text-2xl font-black tracking-tight">INFINITY <span class="text-indigo-400">LC</span></span>
+                <span class="text-2xl font-black tracking-tight"><?= get_setting('company_name') ?></span>
             </div>
 
             <div class="space-y-6 max-w-lg">
