@@ -78,16 +78,27 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
                 const schoolId = document.querySelector('select[name="st_school"]').value;
                 const groupSelect = document.querySelector('select[name="st_group"]');
                 const schoolGroups = groups.filter(g => g.school_id == schoolId);
+                const msg = document.getElementById('no-groups-msg');
 
                 groupSelect.innerHTML = '<option value="" disabled selected>Guruhni Tanlang</option>';
-                schoolGroups.forEach(g => {
+
+                if (schoolGroups.length === 0) {
+                    if(msg) msg.classList.remove('hidden');
                     const opt = document.createElement('option');
-                    opt.value = g.name;
-                    opt.textContent = g.name;
-                    opt.dataset.price = g.price;
-                    opt.dataset.schedule = g.schedule_type;
+                    opt.disabled = true;
+                    opt.textContent = "Guruhlar mavjud emas";
                     groupSelect.appendChild(opt);
-                });
+                } else {
+                    if(msg) msg.classList.add('hidden');
+                    schoolGroups.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.name;
+                        opt.textContent = g.name;
+                        opt.dataset.price = g.price;
+                        opt.dataset.schedule = g.schedule_type;
+                        groupSelect.appendChild(opt);
+                    });
+                }
                 document.querySelector('input[name="st_fee"]').value = '';
                 document.querySelector('select[name="st_schedule"]').value = 'odd';
             }
@@ -110,9 +121,14 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
                     <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="st_group" onchange="updateGroupDetails()" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
-                <option value="" disabled selected>Avval Maktabni Tanlang</option>
-            </select>
+            <div>
+                <select name="st_group" onchange="updateGroupDetails()" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
+                    <option value="" disabled selected>Avval Maktabni Tanlang</option>
+                </select>
+                <div id="no-groups-msg" class="text-xs text-rose-500 font-bold mt-2 hidden flex items-center gap-1">
+                    <i data-lucide="alert-circle" class="w-3 h-3"></i> Guruhlar topilmadi. <a href="?p=settings" class="underline hover:text-rose-600">Sozlamalarda yarating</a>
+                </div>
+            </div>
             <div class="grid grid-cols-2 gap-3">
                 <input type="number" name="st_fee" placeholder="To'lov (SO'M)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
                 <select name="st_schedule" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600">

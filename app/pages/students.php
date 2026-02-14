@@ -48,13 +48,18 @@ if (!$is_admin) { header("Location: ?p=dashboard"); exit; }
                         </span>
                     </td>
                     <td class="p-4 text-right pr-6">
-                        <form method="POST" onsubmit="return confirm('Haqiqatan ham bu o\'quvchini o\'chirmoqchimisiz? Bu amalni ortga qaytarib bo\'lmaydi.');" class="inline">
-                            <input type="hidden" name="delete_student" value="1">
-                            <input type="hidden" name="student_id" value="<?= $s['id'] ?>">
-                            <button type="submit" class="text-slate-300 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition duration-300 inline-flex items-center justify-center cursor-pointer">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </form>
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="?p=edit_student&id=<?= $s['id'] ?>" class="text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition duration-300 inline-flex items-center justify-center cursor-pointer">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </a>
+                            <form method="POST" onsubmit="return confirm('Haqiqatan ham bu o\'quvchini o\'chirmoqchimisiz? Bu amalni ortga qaytarib bo\'lmaydi.');" class="inline">
+                                <input type="hidden" name="delete_student" value="1">
+                                <input type="hidden" name="student_id" value="<?= $s['id'] ?>">
+                                <button type="submit" class="text-slate-300 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition duration-300 inline-flex items-center justify-center cursor-pointer">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>

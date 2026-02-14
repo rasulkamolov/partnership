@@ -124,6 +124,11 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         $db->prepare("DELETE FROM groups WHERE id = ?")->execute([$_POST['group_id']]);
         header("Location: ?p=settings&msg=Guruh o'chirildi"); exit;
     }
+    if (isset($_POST['update_student'])) {
+        $db->prepare("UPDATE students SET name = ?, school_id = ?, group_name = ?, monthly_fee = ?, schedule_type = ? WHERE id = ?")
+           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule'], $_POST['student_id']]);
+        header("Location: ?p=students&msg=O'quvchi ma'lumotlari yangilandi"); exit;
+    }
 }
 
 // View Router
@@ -139,7 +144,7 @@ if (!isset($_SESSION['user_id'])) {
 
     $page = $_GET['p'] ?? 'dashboard';
     $allowed_pages = ['dashboard', 'attendance', 'reports', 'monthly'];
-    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools', 'settings']);
+    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools', 'settings', 'edit_student']);
 
     if (in_array($page, $allowed_pages) && file_exists("app/pages/$page.php")) {
         include "app/pages/$page.php";
