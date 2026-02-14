@@ -97,7 +97,7 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
                         opt.value = g.name;
                         opt.textContent = g.name;
                         opt.dataset.price = g.price;
-                        opt.dataset.schedule = g.schedule_type;
+                    // Schedule removed from group schema
                         groupSelect.appendChild(opt);
                     });
                 }
@@ -115,9 +115,7 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
                 if (selectedOpt && selectedOpt.dataset.price) {
                     document.querySelector('input[name="st_fee"]').value = selectedOpt.dataset.price;
                 }
-                if (selectedOpt && selectedOpt.dataset.schedule) {
-                    document.querySelector('select[name="st_schedule"]').value = selectedOpt.dataset.schedule;
-                }
+                // Schedule update removed
             }
         </script>
         <form method="POST" class="space-y-4">

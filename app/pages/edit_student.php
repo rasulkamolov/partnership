@@ -41,17 +41,13 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
                 opt.value = g.name;
                 opt.textContent = g.name;
                 opt.dataset.price = g.price;
-                opt.dataset.schedule = g.schedule_type;
+                // Schedule removed
                 if (keepCurrent && g.name === currentGroup) {
                     opt.selected = true;
                     foundCurrent = true;
                 }
                 groupSelect.appendChild(opt);
             });
-
-            // If current group not found (e.g. was deleted or custom), still select it?
-            // If keepCurrent is true but we didn't find it in list, maybe add it as custom option?
-            // For now, if not found, we just let it be empty or default.
         }
 
         function updateGroupDetails() {
@@ -60,9 +56,7 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
             if (selectedOpt && selectedOpt.dataset.price) {
                 document.querySelector('input[name="st_fee"]').value = selectedOpt.dataset.price;
             }
-            if (selectedOpt && selectedOpt.dataset.schedule) {
-                document.querySelector('select[name="st_schedule"]').value = selectedOpt.dataset.schedule;
-            }
+            // Schedule no longer updated automatically
         }
 
         document.addEventListener('DOMContentLoaded', () => {

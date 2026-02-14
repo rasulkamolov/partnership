@@ -142,8 +142,9 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
     if (isset($_POST['add_group'])) {
-        $db->prepare("INSERT INTO groups (school_id, name, price, schedule_type) VALUES (NULL, ?, ?, ?)")
-           ->execute([$_POST['name'], $_POST['price'], $_POST['schedule']]);
+        // Schedule type removed from group creation
+        $db->prepare("INSERT INTO groups (school_id, name, price) VALUES (NULL, ?, ?)")
+           ->execute([$_POST['name'], $_POST['price']]);
         header("Location: ?p=settings&msg=Guruh qo'shildi"); exit;
     }
     if (isset($_POST['delete_group'])) {

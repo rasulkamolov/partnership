@@ -71,15 +71,6 @@ $company_name = get_setting('company_name');
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Narx (SO'M)</label>
                             <input type="number" name="price" placeholder="0" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition" required>
                         </div>
-
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Jadval</label>
-                            <select name="schedule" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition cursor-pointer">
-                                <option value="odd">Toq Kunlar</option>
-                                <option value="even">Juft Kunlar</option>
-                                <option value="everyday">Har Kuni</option>
-                            </select>
-                        </div>
                     </div>
 
                     <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30 flex justify-center gap-2 items-center text-sm mt-4">
@@ -104,7 +95,7 @@ $company_name = get_setting('company_name');
                         <thead class="bg-slate-50/80 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-200/60 backdrop-blur-sm">
                             <tr>
                                 <th class="p-4 pl-6">Guruh</th>
-                                <th class="p-4">Narx / Jadval</th>
+                                <th class="p-4">Narx</th>
                                 <th class="p-4 text-right pr-6">Amallar</th>
                             </tr>
                         </thead>
@@ -113,16 +104,7 @@ $company_name = get_setting('company_name');
                             <tr class="group hover:bg-slate-50/50 transition duration-200">
                                 <td class="p-4 pl-6 font-bold text-slate-800 text-sm"><?= htmlspecialchars($g['name']) ?></td>
                                 <td class="p-4">
-                                    <div class="flex flex-col">
-                                        <span class="font-bold text-slate-700 text-xs"><?= number_format($g['price'], 0) ?> UZS</span>
-                                        <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mt-0.5">
-                                            <?php
-                                            if ($g['schedule_type'] == 'odd') echo 'Toq';
-                                            elseif ($g['schedule_type'] == 'even') echo 'Juft';
-                                            else echo 'Har Kuni';
-                                            ?>
-                                        </span>
-                                    </div>
+                                    <span class="font-bold text-slate-700 text-xs"><?= number_format($g['price'], 0) ?> UZS</span>
                                 </td>
                                 <td class="p-4 text-right pr-6">
                                     <form method="POST" onsubmit="return confirm('Ushbu guruhni o\'chirmoqchimisiz?');" class="inline">
