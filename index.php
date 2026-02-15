@@ -12,6 +12,16 @@ $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $db->exec("CREATE TABLE IF NOT EXISTS schools (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, username TEXT UNIQUE, password TEXT, contact TEXT, joined_date DATE DEFAULT CURRENT_DATE)");
 $db->exec("CREATE TABLE IF NOT EXISTS students (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, group_name TEXT, status TEXT DEFAULT 'Active', FOREIGN KEY(school_id) REFERENCES schools(id))");
 $db->exec("CREATE TABLE IF NOT EXISTS attendance (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER, status TEXT, date DATE DEFAULT CURRENT_DATE, marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+$db->exec("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, days_per_month INTEGER DEFAULT 12, fee REAL, schedule_type TEXT)");
+
+// Check for group_id column in students table
+$cols = [];
+foreach ($db->query("PRAGMA table_info(students)") as $row) {
+    $cols[] = $row['name'];
+}
+if (!in_array('group_id', $cols)) {
+    $db->exec("ALTER TABLE students ADD COLUMN group_id INTEGER REFERENCES groups(id)");
+}
 
 // Create Master Admin (admin / admin123)
 if (!$db->query("SELECT 1 FROM schools WHERE username = 'admin'")->fetch()) {
@@ -40,8 +50,12 @@ if ($is_admin) {
            ->execute([$_POST['sch_name'], $_POST['sch_user'], password_hash($_POST['sch_pass'], PASSWORD_DEFAULT), $_POST['sch_contact']]);
     }
     if (isset($_POST['add_student'])) {
-        $db->prepare("INSERT INTO students (name, school_id, group_name) VALUES (?, ?, ?)")
-           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group']]);
+        $g = $db->prepare("SELECT name FROM groups WHERE id = ?");
+        $g->execute([$_POST['st_group']]);
+        $g_name = $g->fetchColumn() ?: 'Unknown';
+
+        $db->prepare("INSERT INTO students (name, school_id, group_name, group_id) VALUES (?, ?, ?, ?)")
+           ->execute([$_POST['st_name'], $_POST['st_school'], $g_name, $_POST['st_group']]);
     }
     if (isset($_POST['save_att'])) {
         foreach ($_POST['att'] as $sid => $status) {
@@ -50,6 +64,11 @@ if ($is_admin) {
         $success_msg = "Attendance synchronized!";
     }
     if (isset($_GET['del_st'])) { $db->prepare("DELETE FROM students WHERE id = ?")->execute([$_GET['del_st']]); header("Location: index.php?p=students"); }
+    if (isset($_POST['add_group'])) {
+        $db->prepare("INSERT INTO groups (name, days_per_month, fee, schedule_type) VALUES (?, ?, ?, ?)")
+           ->execute([$_POST['g_name'], $_POST['g_days'], $_POST['g_fee'], $_POST['g_schedule']]);
+    }
+    if (isset($_GET['del_group'])) { $db->prepare("DELETE FROM groups WHERE id = ?")->execute([$_GET['del_group']]); header("Location: index.php?p=groups"); }
 }
 
 // --- 3. DATA AGGREGATION FOR REPORTS ---
@@ -101,6 +120,7 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                 <a href="index.php" class="flex items-center gap-4 p-4 rounded-2xl transition <?= !isset($_GET['p']) ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="?p=attendance" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='attendance' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="calendar-check"></i> Attendance</a>
                 <a href="?p=students" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='students' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="users"></i> Students</a>
+                <a href="?p=groups" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='groups' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="layers"></i> Groups</a>
                 <a href="?p=reports" class="flex items-center gap-4 p-4 rounded-2xl transition <?= $_GET['p']=='reports' ? 'tab-active' : 'hover:bg-white/5 hover:text-white' ?>"><i data-lucide="bar-chart-horizontal"></i> Analytics</a>
             </nav>
 
@@ -158,6 +178,7 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                             <input type="text" name="sch_name" placeholder="Official Institution Name" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
                             <input type="text" name="sch_user" placeholder="Assigned Username" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
                             <input type="password" name="sch_pass" placeholder="Password Access" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
+                            <input type="text" name="sch_contact" placeholder="Contact Information" class="w-full p-5 bg-slate-50 rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none">
                             <button name="add_school" class="w-full bg-indigo-600 text-white font-bold p-5 rounded-3xl hover:bg-slate-900 transition shadow-xl shadow-indigo-100">Establish Partnership</button>
                         </form>
                     </div>
@@ -170,7 +191,12 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                                     <option value="<?=$s['id']?>"><?=$s['name']?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <input type="text" name="st_group" placeholder="Educational Group (e.g. IELTS Foundation)" class="w-full p-5 bg-white rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none shadow-sm">
+                            <select name="st_group" class="w-full p-5 bg-white rounded-3xl outline-none border-none shadow-sm">
+                                <option value="" disabled selected>Select Educational Group</option>
+                                <?php foreach($db->query("SELECT * FROM groups") as $g): ?>
+                                    <option value="<?=$g['id']?>"><?=$g['name']?> (<?=$g['days_per_month']?> days • $<?=$g['fee']?>)</option>
+                                <?php endforeach; ?>
+                            </select>
                             <button name="add_student" class="w-full bg-slate-900 text-white font-bold p-5 rounded-3xl hover:bg-indigo-600 transition">Confirm Enrollment</button>
                         </form>
                     </div>
@@ -192,11 +218,11 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                <?php foreach($db->query("SELECT s.*, sc.name as s_name FROM students s JOIN schools sc ON s.school_id = sc.id") as $row): ?>
+                                <?php foreach($db->query("SELECT s.*, sc.name as s_name, g.name as g_name FROM students s JOIN schools sc ON s.school_id = sc.id LEFT JOIN groups g ON s.group_id = g.id") as $row): ?>
                                 <tr class="group hover:bg-slate-50 transition">
                                     <td class="p-6">
                                         <p class="font-black text-slate-800 text-lg"><?= $row['name'] ?></p>
-                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter"><?= $row['s_name'] ?> • <?= $row['group_name'] ?></p>
+                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter"><?= $row['s_name'] ?> • <?= $row['g_name'] ?? $row['group_name'] ?></p>
                                     </td>
                                     <td class="p-6">
                                         <div class="flex justify-center gap-4">
@@ -229,11 +255,16 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                             <tr><th class="p-8">Name</th><th class="p-8">School</th><th class="p-8">Group</th><th class="p-8 text-right">Actions</th></tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
-                            <?php foreach($db->query("SELECT s.*, sc.name as sname FROM students s JOIN schools sc ON s.school_id = sc.id") as $s): ?>
+                            <?php foreach($db->query("SELECT s.*, sc.name as sname, g.name as gname, g.fee as gfee, g.days_per_month as gdays FROM students s JOIN schools sc ON s.school_id = sc.id LEFT JOIN groups g ON s.group_id = g.id") as $s): ?>
                             <tr>
                                 <td class="p-8 font-bold text-slate-800 text-xl"><?= $s['name'] ?></td>
                                 <td class="p-8 text-indigo-600 font-black italic"><?= $s['sname'] ?></td>
-                                <td class="p-8"><span class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold text-slate-600"><?= $s['group_name'] ?></span></td>
+                                <td class="p-8">
+                                    <span class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 block w-fit mb-1"><?= $s['gname'] ?? $s['group_name'] ?></span>
+                                    <?php if(isset($s['gfee'])): ?>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">$<?= $s['gfee'] ?> • <?= $s['gdays'] ?> Days</p>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="p-8 text-right">
                                     <a href="?del_st=<?=$s['id']?>" class="text-rose-400 hover:text-rose-600 transition"><i data-lucide="trash-2"></i></a>
                                 </td>
@@ -241,6 +272,53 @@ $absent_today = $db->query("SELECT COUNT(*) FROM attendance WHERE status='Absent
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                </div>
+
+            <?php elseif($_GET['p'] == 'groups'): ?>
+                <div class="grid grid-cols-3 gap-10">
+                    <div class="col-span-1 bg-indigo-50 p-12 rounded-[3.5rem] border border-indigo-100">
+                        <h3 class="text-2xl font-black mb-8 text-indigo-900">New Group</h3>
+                        <form method="POST" class="space-y-5">
+                            <input type="text" name="g_name" placeholder="Group Name" class="w-full p-5 bg-white rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none shadow-sm" required>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="number" name="g_days" placeholder="Days/Mo" value="12" class="w-full p-5 bg-white rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none shadow-sm" required>
+                                <select name="g_schedule" class="w-full p-5 bg-white rounded-3xl outline-none border-none shadow-sm">
+                                    <option value="Odd">Odd Days</option>
+                                    <option value="Even">Even Days</option>
+                                    <option value="Daily">Everyday</option>
+                                    <option value="Weekend">Weekend</option>
+                                </select>
+                            </div>
+                            <input type="number" name="g_fee" placeholder="Monthly Fee" class="w-full p-5 bg-white rounded-3xl outline-none focus:ring-2 focus:ring-indigo-500 border-none shadow-sm" required>
+                            <button name="add_group" class="w-full bg-slate-900 text-white font-bold p-5 rounded-3xl hover:bg-indigo-600 transition">Create Group</button>
+                        </form>
+                    </div>
+                    <div class="col-span-2 bg-white rounded-[3.5rem] p-12 shadow-sm border border-slate-200/50">
+                        <h3 class="text-3xl font-black mb-8">Active Groups</h3>
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest">
+                                <tr><th class="p-6">Group</th><th class="p-6">Schedule</th><th class="p-6">Fee Structure</th><th class="p-6 text-right">Actions</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <?php foreach($db->query("SELECT * FROM groups") as $g): ?>
+                                <tr>
+                                    <td class="p-6">
+                                        <p class="font-bold text-slate-800 text-lg"><?= $g['name'] ?></p>
+                                        <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter"><?= $g['days_per_month'] ?> Sessions / Month</p>
+                                    </td>
+                                    <td class="p-6"><span class="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold uppercase"><?= $g['schedule_type'] ?></span></td>
+                                    <td class="p-6">
+                                        <p class="font-bold text-slate-800"><?= number_format($g['fee'], 0) ?></p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Gov: <?= number_format($g['fee']*0.8, 0) ?> • Par: <?= number_format($g['fee']*0.2, 0) ?></p>
+                                    </td>
+                                    <td class="p-6 text-right">
+                                        <a href="?del_group=<?=$g['id']?>" class="text-rose-400 hover:text-rose-600 transition"><i data-lucide="trash-2"></i></a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             <?php elseif($_GET['p'] == 'reports'): ?>
