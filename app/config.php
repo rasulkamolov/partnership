@@ -48,9 +48,19 @@ if (!in_array('profile_id', $cols)) {
     }
 }
 
+// Helper: Upgrade Schools table with role
+$school_cols = $db->query("PRAGMA table_info(schools)")->fetchAll(PDO::FETCH_COLUMN, 1);
+if (!in_array('role', $school_cols)) {
+    $db->exec("ALTER TABLE schools ADD COLUMN role TEXT DEFAULT 'partner'");
+    // Set ID 1 as admin (assuming master admin is first user)
+    $db->exec("UPDATE schools SET role='admin' WHERE id=1");
+}
+
 // Seed Master Admin
-if (!$db->query("SELECT 1 FROM schools WHERE username = 'admin'")->fetch()) {
-    $db->prepare("INSERT INTO schools (name, username, password) VALUES (?, ?, ?)")->execute(['Oxford LC Master', 'admin', password_hash('admin123', PASSWORD_DEFAULT)]);
+// Check by role or username
+$admin_exists = $db->query("SELECT 1 FROM schools WHERE role = 'admin' OR username = 'admin'")->fetch();
+if (!$admin_exists) {
+    $db->prepare("INSERT INTO schools (name, username, password, role) VALUES (?, ?, ?, ?)")->execute(['Oxford LC Master', 'admin', password_hash('admin123', PASSWORD_DEFAULT), 'admin']);
 }
 
 // Seed Default Settings

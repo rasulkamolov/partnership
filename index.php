@@ -12,12 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $s->execute([$_POST['user']]);
     $u = $s->fetch();
     if ($u && password_verify($_POST['pass'], $u['password'])) {
-        $_SESSION['user_id'] = $u['id']; $_SESSION['username'] = $u['username']; $_SESSION['name'] = $u['name'];
+        $_SESSION['user_id'] = $u['id'];
+        $_SESSION['username'] = $u['username'];
+        $_SESSION['name'] = $u['name'];
+        $_SESSION['role'] = $u['role'] ?? 'partner';
         header("Location: index.php"); exit;
     } $err = "Login yoki parol noto'g'ri";
 }
 
-$is_admin = ($_SESSION['username'] ?? '') === 'admin';
+$is_admin = ($_SESSION['role'] ?? '') === 'admin';
 $uid = $_SESSION['user_id'] ?? 0;
 
 // Export Handler (Must be before HTML)
@@ -98,13 +101,42 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // Prevent duplicate enrollment in same group?
-        // User said "one student can be joined two groups". So duplicates allowed if group is different.
-        // But if same group, maybe block? For now, allow all.
+        // Loop through multiple groups
+        // st_group, st_fee, st_schedule are arrays
+        $groups = $_POST['st_group'];
+        $fees = $_POST['st_fee'];
+        $schedules = $_POST['st_schedule'];
 
-        $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id) VALUES (?, ?, ?, ?, ?, ?)")
-           ->execute([$name, $sid, $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule'], $pid]);
+        if (is_array($groups)) {
+            $stmt = $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id) VALUES (?, ?, ?, ?, ?, ?)");
+            for ($i = 0; $i < count($groups); $i++) {
+                $group = $groups[$i];
+                $fee = $fees[$i];
+                $schedule = $schedules[$i];
+                $stmt->execute([$name, $sid, $group, $fee, $schedule, $pid]);
+            }
+        }
+
         header("Location: ?p=dashboard&msg=O'quvchi qo'shildi"); exit;
+    }
+    if (isset($_POST['add_enrollment_to_profile'])) {
+        $groups = $_POST['st_group'];
+        $fees = $_POST['st_fee'];
+        $schedules = $_POST['st_schedule'];
+        $pid = $_POST['profile_id'];
+        $sid = $_POST['school_id'];
+        $name = $_POST['st_name'];
+
+        if (is_array($groups)) {
+            $stmt = $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id) VALUES (?, ?, ?, ?, ?, ?)");
+            for ($i = 0; $i < count($groups); $i++) {
+                $group = $groups[$i];
+                $fee = $fees[$i];
+                $schedule = $schedules[$i];
+                $stmt->execute([$name, $sid, $group, $fee, $schedule, $pid]);
+            }
+        }
+        header("Location: ?p=students&msg=Guruhlar qo'shildi"); exit;
     }
     if (isset($_POST['save_pricing'])) {
         foreach ($_POST['fee'] as $sid => $fee) {
@@ -206,7 +238,7 @@ if (!isset($_SESSION['user_id'])) {
 
     $page = $_GET['p'] ?? 'dashboard';
     $allowed_pages = ['dashboard', 'attendance', 'reports', 'monthly'];
-    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools', 'settings', 'edit_student']);
+    if ($is_admin) $allowed_pages = array_merge($allowed_pages, ['students', 'pricing', 'schools', 'settings', 'edit_student', 'add_enrollment']);
 
     if (in_array($page, $allowed_pages) && file_exists("app/pages/$page.php")) {
         include "app/pages/$page.php";

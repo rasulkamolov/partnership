@@ -74,49 +74,54 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
         <?php $groups_json = json_encode($db->query("SELECT * FROM groups ORDER BY name")->fetchAll(PDO::FETCH_ASSOC)); ?>
         <script>
             const groups = <?= $groups_json ?>;
-            // Groups are now global, no need to filter by school
-            function updateGroups() {
-                const groupSelect = document.querySelector('select[name="st_group"]');
-                // const schoolGroups = groups.filter(g => g.school_id == schoolId); // Deprecated
-                const msg = document.getElementById('no-groups-msg');
 
-                // If it's already populated, maybe don't clear?
-                // But we want to ensure consistent state.
-                groupSelect.innerHTML = '<option value="" disabled selected>Guruhni Tanlang</option>';
+            // Generate options HTML for group select
+            function getGroupOptions() {
+                if (groups.length === 0) return '<option disabled>Guruhlar mavjud emas</option>';
+                return '<option value="" disabled selected>Guruhni Tanlang</option>' +
+                       groups.map(g => `<option value="${g.name}" data-price="${g.price}">${g.name}</option>`).join('');
+            }
 
-                if (groups.length === 0) {
-                    if(msg) msg.classList.remove('hidden');
-                    const opt = document.createElement('option');
-                    opt.disabled = true;
-                    opt.textContent = "Guruhlar mavjud emas";
-                    groupSelect.appendChild(opt);
-                } else {
-                    if(msg) msg.classList.add('hidden');
-                    groups.forEach(g => {
-                        const opt = document.createElement('option');
-                        opt.value = g.name;
-                        opt.textContent = g.name;
-                        opt.dataset.price = g.price;
-                    // Schedule removed from group schema
-                        groupSelect.appendChild(opt);
-                    });
-                }
-                // Reset fields only if user changed selection manually, but here we are initializing list.
-                // Actually, this function was called on st_school change.
-                // Since groups are global, school change shouldn't affect group list,
-                // but we might want to keep the group selection if possible?
-                // For now, let's just populate it once on load and not clear on school change.
+            function addGroupRow() {
+                const container = document.getElementById('groups-container');
+                const index = container.children.length;
+                const div = document.createElement('div');
+                div.className = "space-y-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100 relative group-row";
+                div.innerHTML = `
+                    <div class="absolute -right-2 -top-2 cursor-pointer bg-white text-rose-500 rounded-full p-1 shadow-sm border border-rose-100 hover:bg-rose-50 transition ${index === 0 ? 'hidden' : ''}" onclick="this.parentElement.remove()">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </div>
+                    <div>
+                        <select name="st_group[]" onchange="updateRowPrice(this)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
+                            ${getGroupOptions()}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" name="st_fee[]" placeholder="To'lov (SO'M)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
+                        <select name="st_schedule[]" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600">
+                            <option value="odd">Toq (Du/Chor/Ju)</option>
+                            <option value="even">Juft (Se/Pay/Sha)</option>
+                            <option value="everyday">Har Kuni</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(div);
+                lucide.createIcons();
             }
-            // Populate on load
-            document.addEventListener('DOMContentLoaded', updateGroups);
-            function updateGroupDetails() {
-                const groupSelect = document.querySelector('select[name="st_group"]');
-                const selectedOpt = groupSelect.options[groupSelect.selectedIndex];
-                if (selectedOpt && selectedOpt.dataset.price) {
-                    document.querySelector('input[name="st_fee"]').value = selectedOpt.dataset.price;
+
+            function updateRowPrice(select) {
+                const price = select.options[select.selectedIndex].dataset.price;
+                if (price) {
+                    const row = select.closest('.group-row');
+                    row.querySelector('input[name="st_fee[]"]').value = price;
                 }
-                // Schedule update removed
             }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if(document.getElementById('groups-container').children.length === 0) {
+                    addGroupRow();
+                }
+            });
         </script>
         <?php
             // Fetch all student profiles for JS autocomplete
@@ -168,23 +173,15 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
                     <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <div>
-                <select name="st_group" onchange="updateGroupDetails()" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
-                    <option value="" disabled selected>Guruhni Tanlang</option>
-                </select>
-                <div id="no-groups-msg" class="text-xs text-rose-500 font-bold mt-2 hidden flex items-center gap-1">
-                    <i data-lucide="alert-circle" class="w-3 h-3"></i> Guruhlar topilmadi. <a href="?p=settings" class="underline hover:text-rose-600">Sozlamalarda yarating</a>
-                </div>
+            <div id="groups-container" class="space-y-4">
+                <!-- Group rows added by JS -->
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <input type="number" name="st_fee" placeholder="To'lov (SO'M)" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
-                <select name="st_schedule" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600">
-                    <option value="odd">Toq (Du/Chor/Ju)</option>
-                    <option value="even">Juft (Se/Pay/Sha)</option>
-                    <option value="everyday">Har Kuni</option>
-                </select>
-            </div>
-            <button name="add_student" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-600 transition shadow-lg flex justify-center gap-2 items-center text-sm">
+
+            <button type="button" onclick="addGroupRow()" class="w-full py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl border border-dashed border-indigo-200 hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                <i data-lucide="plus" class="w-3 h-3"></i> Yana guruh qo'shish
+            </button>
+
+            <button name="add_student" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-600 transition shadow-lg flex justify-center gap-2 items-center text-sm mt-2">
                 <span>Ro'yxatga Olish</span> <i data-lucide="check-circle" class="w-4 h-4"></i>
             </button>
         </form>

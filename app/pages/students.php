@@ -49,6 +49,9 @@ if (!$is_admin) { header("Location: ?p=dashboard"); exit; }
                     </td>
                     <td class="p-4 text-right pr-6">
                         <div class="flex items-center justify-end gap-2">
+                            <a href="?p=add_enrollment&profile_id=<?= $s['profile_id'] ?>" title="Guruh Qo'shish" class="text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 p-2 rounded-lg transition duration-300 inline-flex items-center justify-center cursor-pointer">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            </a>
                             <a href="?p=edit_student&id=<?= $s['id'] ?>" class="text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition duration-300 inline-flex items-center justify-center cursor-pointer">
                                 <i data-lucide="edit" class="w-4 h-4"></i>
                             </a>
