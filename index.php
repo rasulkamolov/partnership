@@ -81,8 +81,29 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: ?p=schools&msg=Hamkor o'chirildi"); exit;
     }
     if (isset($_POST['add_student'])) {
-        $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type) VALUES (?, ?, ?, ?, ?)")
-           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule']]);
+        $pid = $_POST['existing_profile_id'] ?? '';
+        $name = $_POST['st_name'];
+        $sid = $_POST['st_school'];
+
+        if (empty($pid)) {
+            // Check if profile exists by name/school just in case
+            $chk = $db->prepare("SELECT id FROM student_profiles WHERE name = ? AND school_id = ?");
+            $chk->execute([$name, $sid]);
+            $pid = $chk->fetchColumn();
+
+            if (!$pid) {
+                // Create new profile
+                $db->prepare("INSERT INTO student_profiles (name, school_id) VALUES (?, ?)")->execute([$name, $sid]);
+                $pid = $db->lastInsertId();
+            }
+        }
+
+        // Prevent duplicate enrollment in same group?
+        // User said "one student can be joined two groups". So duplicates allowed if group is different.
+        // But if same group, maybe block? For now, allow all.
+
+        $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id) VALUES (?, ?, ?, ?, ?, ?)")
+           ->execute([$name, $sid, $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule'], $pid]);
         header("Location: ?p=dashboard&msg=O'quvchi qo'shildi"); exit;
     }
     if (isset($_POST['save_pricing'])) {
@@ -152,8 +173,22 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: ?p=settings&msg=Guruh o'chirildi"); exit;
     }
     if (isset($_POST['update_student'])) {
+        // Update enrollment
         $db->prepare("UPDATE students SET name = ?, school_id = ?, group_name = ?, monthly_fee = ?, schedule_type = ? WHERE id = ?")
            ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule'], $_POST['student_id']]);
+
+        // Update profile name too? Yes, usually fix typo.
+        // Get profile_id
+        $prof = $db->prepare("SELECT profile_id FROM students WHERE id = ?");
+        $prof->execute([$_POST['student_id']]);
+        $pid = $prof->fetchColumn();
+
+        if ($pid) {
+            $db->prepare("UPDATE student_profiles SET name = ?, school_id = ? WHERE id = ?")->execute([$_POST['st_name'], $_POST['st_school'], $pid]);
+            // Sync all other enrollments for this profile
+            $db->prepare("UPDATE students SET name = ?, school_id = ? WHERE profile_id = ?")->execute([$_POST['st_name'], $_POST['st_school'], $pid]);
+        }
+
         header("Location: ?p=students&msg=O'quvchi ma'lumotlari yangilandi"); exit;
     }
 }

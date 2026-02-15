@@ -21,10 +21,32 @@ $db->exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT
 // We'll treat school_id=NULL or 0 as 'Global'. Schedule type is also optional or unused now in groups.
 $db->exec("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, price REAL, schedule_type TEXT, FOREIGN KEY(school_id) REFERENCES schools(id))");
 
+// Student Profiles (Linking multiple enrollments to one person)
+$db->exec("CREATE TABLE IF NOT EXISTS student_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, created_at DATE DEFAULT CURRENT_DATE)");
+
 // Helper: Upgrade Schema if columns missing (idempotent)
 $cols = $db->query("PRAGMA table_info(students)")->fetchAll(PDO::FETCH_COLUMN, 1);
 if (!in_array('monthly_fee', $cols)) $db->exec("ALTER TABLE students ADD COLUMN monthly_fee REAL DEFAULT 0");
 if (!in_array('schedule_type', $cols)) $db->exec("ALTER TABLE students ADD COLUMN schedule_type TEXT DEFAULT 'odd'");
+if (!in_array('profile_id', $cols)) {
+    $db->exec("ALTER TABLE students ADD COLUMN profile_id INTEGER REFERENCES student_profiles(id)");
+    // Migration: Create profiles for existing students
+    $existing = $db->query("SELECT id, name, school_id FROM students WHERE profile_id IS NULL");
+    if ($existing) {
+        foreach ($existing as $st) {
+            // Check if profile exists for this name/school
+            $prof = $db->prepare("SELECT id FROM student_profiles WHERE name = ? AND school_id = ?");
+            $prof->execute([$st['name'], $st['school_id']]);
+            $pid = $prof->fetchColumn();
+            if (!$pid) {
+                $ins = $db->prepare("INSERT INTO student_profiles (name, school_id) VALUES (?, ?)");
+                $ins->execute([$st['name'], $st['school_id']]);
+                $pid = $db->lastInsertId();
+            }
+            $db->prepare("UPDATE students SET profile_id = ? WHERE id = ?")->execute([$pid, $st['id']]);
+        }
+    }
+}
 
 // Seed Master Admin
 if (!$db->query("SELECT 1 FROM schools WHERE username = 'admin'")->fetch()) {

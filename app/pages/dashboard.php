@@ -118,9 +118,51 @@ $absent_today = $db->query($is_admin ? "SELECT COUNT(*) FROM attendance WHERE st
                 // Schedule update removed
             }
         </script>
-        <form method="POST" class="space-y-4">
-            <input type="text" name="st_name" placeholder="To'liq Ism" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
-            <select name="st_school" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
+        <?php
+            // Fetch all student profiles for JS autocomplete
+            $all_profiles = $db->query("SELECT id, name, school_id FROM student_profiles")->fetchAll(PDO::FETCH_ASSOC);
+            $profiles_json = json_encode($all_profiles);
+        ?>
+        <script>
+            const profiles = <?= $profiles_json ?>;
+            function checkExistingStudent() {
+                const nameInput = document.querySelector('input[name="st_name"]');
+                const schoolInput = document.querySelector('select[name="st_school"]');
+                const list = document.getElementById('existing-students-list');
+                const selectedSchool = schoolInput.value;
+                const typedName = nameInput.value.toLowerCase();
+
+                list.innerHTML = '';
+                if (typedName.length < 2) { list.classList.add('hidden'); return; }
+
+                const matches = profiles.filter(p => p.school_id == selectedSchool && p.name.toLowerCase().includes(typedName));
+
+                if (matches.length > 0) {
+                    list.classList.remove('hidden');
+                    matches.forEach(m => {
+                        const div = document.createElement('div');
+                        div.className = "p-2 hover:bg-indigo-50 cursor-pointer text-xs font-bold text-slate-600 border-b border-slate-100 last:border-0";
+                        div.textContent = m.name + " (Mavjud)";
+                        div.onclick = () => {
+                            nameInput.value = m.name;
+                            document.querySelector('input[name="existing_profile_id"]').value = m.id;
+                            list.classList.add('hidden');
+                        };
+                        list.appendChild(div);
+                    });
+                } else {
+                    list.classList.add('hidden');
+                    document.querySelector('input[name="existing_profile_id"]').value = '';
+                }
+            }
+        </script>
+        <form method="POST" class="space-y-4 relative">
+            <input type="hidden" name="existing_profile_id" value="">
+            <div class="relative">
+                <input type="text" name="st_name" oninput="checkExistingStudent()" placeholder="To'liq Ism (Yozishni boshlang...)" autocomplete="off" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-200/50 shadow-sm transition" required>
+                <div id="existing-students-list" class="absolute z-50 left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-200 hidden max-h-40 overflow-y-auto"></div>
+            </div>
+            <select name="st_school" onchange="checkExistingStudent()" class="w-full px-4 py-3 bg-white rounded-xl text-sm font-semibold outline-none border border-slate-200/50 shadow-sm transition cursor-pointer text-slate-600" required>
                 <option value="" disabled selected>Hamkor Maktabni Tanlang</option>
                 <?php foreach($db->query("SELECT * FROM schools WHERE id > 1") as $s): ?>
                     <option value="<?=$s['id']?>"><?= htmlspecialchars($s['name']) ?></option>
