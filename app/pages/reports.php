@@ -14,14 +14,16 @@ $total_revenue = 0;
 if ($is_admin) {
     $students = $db->query("SELECT s.*, sc.name as school_name FROM students s JOIN schools sc ON s.school_id = sc.id")->fetchAll();
     foreach($students as $st) {
-        $teaching_days = get_teaching_days_count($curr_month, $curr_year, $st['schedule_type']);
+        // Use fixed lessons limit set by admin instead of calendar calculation
+        $target_days = $st['lessons_limit'] ?: 12;
+
         $stmt = $db->prepare("SELECT COUNT(*) FROM attendance WHERE student_id = ? AND status = 'Present' AND strftime('%m', date) = ? AND strftime('%Y', date) = ?");
         $stmt->execute([$st['id'], sprintf('%02d', $curr_month), $curr_year]);
         $attended = $stmt->fetchColumn();
 
         $earned = 0;
-        if ($teaching_days > 0) {
-            $earned = ($st['monthly_fee'] / $teaching_days) * $attended;
+        if ($target_days > 0) {
+            $earned = ($st['monthly_fee'] / $target_days) * $attended;
         }
 
         $total_revenue += $earned;
@@ -30,7 +32,7 @@ if ($is_admin) {
             'school' => $st['school_name'],
             'fee' => $st['monthly_fee'],
             'schedule' => $st['schedule_type'],
-            'days' => $teaching_days,
+            'days' => $target_days,
             'attended' => $attended,
             'earned' => $earned
         ];

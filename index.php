@@ -108,12 +108,19 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         $schedules = $_POST['st_schedule'];
 
         if (is_array($groups)) {
-            $stmt = $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id, lessons_limit) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $grp_fetch = $db->prepare("SELECT lessons_per_month FROM groups WHERE name = ?");
+
             for ($i = 0; $i < count($groups); $i++) {
                 $group = $groups[$i];
                 $fee = $fees[$i];
                 $schedule = $schedules[$i];
-                $stmt->execute([$name, $sid, $group, $fee, $schedule, $pid]);
+
+                // Fetch default lessons limit from group template
+                $grp_fetch->execute([$group]);
+                $limit = $grp_fetch->fetchColumn() ?: 12;
+
+                $stmt->execute([$name, $sid, $group, $fee, $schedule, $pid, $limit]);
             }
         }
 
@@ -128,12 +135,19 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
         $name = $_POST['st_name'];
 
         if (is_array($groups)) {
-            $stmt = $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO students (name, school_id, group_name, monthly_fee, schedule_type, profile_id, lessons_limit) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $grp_fetch = $db->prepare("SELECT lessons_per_month FROM groups WHERE name = ?");
+
             for ($i = 0; $i < count($groups); $i++) {
                 $group = $groups[$i];
                 $fee = $fees[$i];
                 $schedule = $schedules[$i];
-                $stmt->execute([$name, $sid, $group, $fee, $schedule, $pid]);
+
+                // Fetch default lessons limit from group template
+                $grp_fetch->execute([$group]);
+                $limit = $grp_fetch->fetchColumn() ?: 12;
+
+                $stmt->execute([$name, $sid, $group, $fee, $schedule, $pid, $limit]);
             }
         }
         header("Location: ?p=students&msg=Guruhlar qo'shildi"); exit;
@@ -196,8 +210,8 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if (isset($_POST['add_group'])) {
         // Schedule type removed from group creation
-        $db->prepare("INSERT INTO groups (school_id, name, price) VALUES (NULL, ?, ?)")
-           ->execute([$_POST['name'], $_POST['price']]);
+        $db->prepare("INSERT INTO groups (school_id, name, price, lessons_per_month) VALUES (NULL, ?, ?, ?)")
+           ->execute([$_POST['name'], $_POST['price'], $_POST['lessons']]);
         header("Location: ?p=settings&msg=Guruh qo'shildi"); exit;
     }
     if (isset($_POST['delete_group'])) {
@@ -206,8 +220,8 @@ if ($is_admin && $_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if (isset($_POST['update_student'])) {
         // Update enrollment
-        $db->prepare("UPDATE students SET name = ?, school_id = ?, group_name = ?, monthly_fee = ?, schedule_type = ? WHERE id = ?")
-           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule'], $_POST['student_id']]);
+        $db->prepare("UPDATE students SET name = ?, school_id = ?, group_name = ?, monthly_fee = ?, schedule_type = ?, lessons_limit = ? WHERE id = ?")
+           ->execute([$_POST['st_name'], $_POST['st_school'], $_POST['st_group'], $_POST['st_fee'], $_POST['st_schedule'], $_POST['st_lessons_limit'], $_POST['student_id']]);
 
         // Update profile name too? Yes, usually fix typo.
         // Get profile_id

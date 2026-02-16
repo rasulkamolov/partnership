@@ -19,7 +19,7 @@ $db->exec("CREATE TABLE IF NOT EXISTS attendance (id INTEGER PRIMARY KEY AUTOINC
 $db->exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)");
 // Updated: groups table no longer strictly tied to school_id (school_id is now nullable, effectively global)
 // We'll treat school_id=NULL or 0 as 'Global'. Schedule type is also optional or unused now in groups.
-$db->exec("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, price REAL, schedule_type TEXT, FOREIGN KEY(school_id) REFERENCES schools(id))");
+$db->exec("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, price REAL, schedule_type TEXT, lessons_per_month INTEGER DEFAULT 12, FOREIGN KEY(school_id) REFERENCES schools(id))");
 
 // Student Profiles (Linking multiple enrollments to one person)
 $db->exec("CREATE TABLE IF NOT EXISTS student_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT, school_id INTEGER, name TEXT, created_at DATE DEFAULT CURRENT_DATE)");
@@ -28,6 +28,7 @@ $db->exec("CREATE TABLE IF NOT EXISTS student_profiles (id INTEGER PRIMARY KEY A
 $cols = $db->query("PRAGMA table_info(students)")->fetchAll(PDO::FETCH_COLUMN, 1);
 if (!in_array('monthly_fee', $cols)) $db->exec("ALTER TABLE students ADD COLUMN monthly_fee REAL DEFAULT 0");
 if (!in_array('schedule_type', $cols)) $db->exec("ALTER TABLE students ADD COLUMN schedule_type TEXT DEFAULT 'odd'");
+if (!in_array('lessons_limit', $cols)) $db->exec("ALTER TABLE students ADD COLUMN lessons_limit INTEGER DEFAULT 12");
 if (!in_array('profile_id', $cols)) {
     $db->exec("ALTER TABLE students ADD COLUMN profile_id INTEGER REFERENCES student_profiles(id)");
     // Migration: Create profiles for existing students
@@ -46,6 +47,12 @@ if (!in_array('profile_id', $cols)) {
             $db->prepare("UPDATE students SET profile_id = ? WHERE id = ?")->execute([$pid, $st['id']]);
         }
     }
+}
+
+// Upgrade Groups Schema
+$grp_cols = $db->query("PRAGMA table_info(groups)")->fetchAll(PDO::FETCH_COLUMN, 1);
+if (!in_array('lessons_per_month', $grp_cols)) {
+    $db->exec("ALTER TABLE groups ADD COLUMN lessons_per_month INTEGER DEFAULT 12");
 }
 
 // Helper: Upgrade Schools table with role

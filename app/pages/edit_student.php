@@ -41,6 +41,7 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
                 opt.value = g.name;
                 opt.textContent = g.name;
                 opt.dataset.price = g.price;
+                opt.dataset.lessons = g.lessons_per_month || 12;
                 // Schedule removed
                 if (keepCurrent && g.name === currentGroup) {
                     opt.selected = true;
@@ -53,10 +54,10 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
         function updateGroupDetails() {
             const groupSelect = document.querySelector('select[name="st_group"]');
             const selectedOpt = groupSelect.options[groupSelect.selectedIndex];
-            if (selectedOpt && selectedOpt.dataset.price) {
-                document.querySelector('input[name="st_fee"]').value = selectedOpt.dataset.price;
+            if (selectedOpt) {
+                if (selectedOpt.dataset.price) document.querySelector('input[name="st_fee"]').value = selectedOpt.dataset.price;
+                if (selectedOpt.dataset.lessons) document.querySelector('input[name="st_lessons_limit"]').value = selectedOpt.dataset.lessons;
             }
-            // Schedule no longer updated automatically
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -93,10 +94,14 @@ $groups = $db->query("SELECT * FROM groups")->fetchAll(PDO::FETCH_ASSOC);
                  Since user asked to "create groups", we assume strict group usage. -->
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
             <div>
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Narx (SO'M)</label>
                 <input type="number" name="st_fee" value="<?= $student['monthly_fee'] ?>" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Darslar Soni</label>
+                <input type="number" name="st_lessons_limit" value="<?= $student['lessons_limit'] ?? 12 ?>" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-100 focus:bg-white transition" required>
             </div>
             <div>
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Jadval</label>

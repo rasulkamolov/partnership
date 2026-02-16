@@ -71,6 +71,11 @@ $company_name = get_setting('company_name');
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Narx (SO'M)</label>
                             <input type="number" name="price" placeholder="0" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition" required>
                         </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Darslar Soni (Oyiga)</label>
+                            <input type="number" name="lessons" value="12" class="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-500/50 border border-slate-100 focus:bg-white transition" required>
+                        </div>
                     </div>
 
                     <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30 flex justify-center gap-2 items-center text-sm mt-4">
@@ -96,6 +101,7 @@ $company_name = get_setting('company_name');
                             <tr>
                                 <th class="p-4 pl-6">Guruh</th>
                                 <th class="p-4">Narx</th>
+                                <th class="p-4 text-center">Dars/Oy</th>
                                 <th class="p-4 text-right pr-6">Amallar</th>
                             </tr>
                         </thead>
@@ -105,6 +111,9 @@ $company_name = get_setting('company_name');
                                 <td class="p-4 pl-6 font-bold text-slate-800 text-sm"><?= htmlspecialchars($g['name']) ?></td>
                                 <td class="p-4">
                                     <span class="font-bold text-slate-700 text-xs"><?= number_format($g['price'], 0) ?> UZS</span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <span class="font-bold text-indigo-600 text-xs bg-indigo-50 px-2 py-1 rounded"><?= $g['lessons_per_month'] ?? 12 ?> ta</span>
                                 </td>
                                 <td class="p-4 text-right pr-6">
                                     <form method="POST" onsubmit="return confirm('Ushbu guruhni o\'chirmoqchimisiz?');" class="inline">
