@@ -31,22 +31,65 @@ $uz_days = [
     5 => 'Juma', 6 => 'Shanba', 7 => 'Yakshanba'
 ];
 $day_name = $uz_days[$dow];
+
+// Group Filter Logic
+$groups_today = $db->query("SELECT DISTINCT group_name FROM students WHERE " .
+                           ($is_admin ? "" : "school_id = $uid AND ") .
+                           "(schedule_type = '$day_type' OR schedule_type = 'everyday') ORDER BY group_name")->fetchAll(PDO::FETCH_COLUMN);
+
+$selected_group = $_GET['group'] ?? ($groups_today[0] ?? '');
+
+// Filter Students by Selected Group
+if ($selected_group) {
+    // Re-query students for specific group
+    $att_q = "SELECT s.*, sc.name as s_name, a.status as today_status
+              FROM students s
+              JOIN schools sc ON s.school_id = sc.id
+              LEFT JOIN attendance a ON s.id = a.student_id AND a.date = date('now')
+              WHERE (s.schedule_type = '$day_type' OR s.schedule_type = 'everyday')
+              AND s.group_name = ?";
+
+    if (!$is_admin) $att_q .= " AND s.school_id = $uid";
+
+    $stmt = $db->prepare($att_q);
+    $stmt->execute([$selected_group]);
+    $students = $stmt->fetchAll();
+} else {
+    $students = [];
+}
 ?>
 <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm relative overflow-hidden min-h-[500px]">
     <!-- Decorative Background -->
     <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-50/50 rounded-full blur-3xl -z-10 opacity-60 pointer-events-none"></div>
     <div class="absolute bottom-0 left-0 w-64 h-64 bg-emerald-50/50 rounded-full blur-3xl -z-10 opacity-60 pointer-events-none"></div>
 
-    <div class="flex justify-between items-end mb-8">
+    <div class="flex justify-between items-end mb-8 flex-wrap gap-4">
         <div>
             <h3 class="text-2xl font-black text-slate-900 tracking-tight mb-1">Kunlik Davomat</h3>
             <p class="text-slate-500 text-sm font-medium">
-                Ko'rsatilmoqda: <span class="text-indigo-600 font-bold uppercase"><?= $day_type_uz ?> Kunlar</span> & <span class="text-indigo-600 font-bold uppercase">Har Kuni</span>
+                Ko'rsatilmoqda: <span class="text-indigo-600 font-bold uppercase"><?= $day_type_uz ?> Kunlar</span>
             </p>
         </div>
-        <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200/60 shadow-sm">
-            <i data-lucide="calendar" class="text-indigo-500 w-4 h-4"></i>
-            <span class="text-slate-700 font-bold text-sm"><?= date('d.m.Y') ?></span>
+
+        <div class="flex items-center gap-4">
+             <!-- Group Selector -->
+             <form method="GET" class="flex items-center gap-2">
+                <input type="hidden" name="p" value="attendance">
+                <select name="group" onchange="this.form.submit()" class="px-4 py-2 bg-white rounded-xl font-bold text-sm border border-slate-200 text-slate-600 outline-none focus:border-indigo-500 cursor-pointer shadow-sm min-w-[200px]">
+                    <?php if(empty($groups_today)): ?>
+                        <option value="" disabled>Bugun guruhlar yo'q</option>
+                    <?php else: ?>
+                        <?php foreach($groups_today as $g): ?>
+                            <option value="<?= htmlspecialchars($g) ?>" <?= $g == $selected_group ? 'selected' : '' ?>><?= htmlspecialchars($g) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+             </form>
+
+            <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200/60 shadow-sm hidden md:flex">
+                <i data-lucide="calendar" class="text-indigo-500 w-4 h-4"></i>
+                <span class="text-slate-700 font-bold text-sm"><?= date('d.m.Y') ?></span>
+            </div>
         </div>
     </div>
 
@@ -56,8 +99,8 @@ $day_name = $uz_days[$dow];
                 <div class="bg-slate-50 p-6 rounded-full mb-4">
                     <i data-lucide="coffee" class="text-slate-300 w-10 h-10"></i>
                 </div>
-                <h4 class="text-slate-900 font-bold text-lg mb-1">Bugun Darslar Yo'q</h4>
-                <p class="text-slate-500 text-sm max-w-xs">Bugungi kun (<?= $day_name ?>) uchun o'quvchilar rejalashtirilmagan.</p>
+                <h4 class="text-slate-900 font-bold text-lg mb-1">Guruh Tanlanmagan yoki Darslar Yo'q</h4>
+                <p class="text-slate-500 text-sm max-w-xs">Iltimos, davomat olish uchun guruhni tanlang.</p>
             </div>
         <?php else: ?>
         <div class="overflow-hidden rounded-2xl border border-slate-200/60 shadow-sm">
